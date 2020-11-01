@@ -97,9 +97,27 @@ void WikiSort(class SortArray& a);
 void BogoSort(class SortArray& a);
 void BozoSort(class SortArray& a);
 void StoogeSort(class SortArray& a);
-void SlowSort(class SortArray& a);
 
 void CycleSort(class SortArray& a);
+
+// ****************
+
+void QuadStoogeSort(class SortArray& a);
+void SlowSort(class SortArray& a);
+void YSlowSort(class SortArray& a);
+void BubbleScanQuicksort(class SortArray& a);
+void CircleSort(class SortArray& a);
+void CircloidSort(class SortArray& a);
+void KiyomiSort(class SortArray& a);
+void ChinottoSort(class SortArray& a);
+void KinnowSort(class SortArray& a);
+void MandarinOrangeSort(class SortArray& a);
+void PairwiseSorting(class SortArray& a);
+void StableQuickSort(class SortArray& a);
+void FloatSort(class SortArray& a);
+void StableSelectionSort(class SortArray& a);
+void QuickSortLLL(class SortArray& a);
+void BoseNelsonSorting(class SortArray& a);
 
 // ****************************************************************************
 // *** Iterator Adapter
