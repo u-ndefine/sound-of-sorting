@@ -147,6 +147,18 @@ void WSortView::paint(wxDC& dc, const wxSize& dcsize)
 {
     dc.SetBackground(*wxBLACK_BRUSH);
     dc.Clear();
+    
+    dc.SetDeviceOrigin(10,10);
+
+    // draw text
+
+    dc.SetTextForeground(*wxWHITE);
+    wxString algo_expand = g_algo_name + wxString(" - ") +
+      wxString(std::to_string(g_compare_count)) + wxString(" comparisons, ")
+      +wxString(std::to_string(g_access_count)) + wxString(" array accesses, ")
+      +((g_delay > 10) ? wxString::Format(_("%.0f ms delay"), g_delay) : wxString::Format(_("%.1f ms delay"), g_delay));
+    size_t th = dc.GetTextExtent(algo_expand).GetHeight();
+    dc.DrawText(algo_expand, 0, -2);
 
     if (m_array.size() == 0) return;
 
@@ -156,9 +168,7 @@ void WSortView::paint(wxDC& dc, const wxSize& dcsize)
     size_t fheight = dcsize.GetHeight();
 
     size_t width = fwidth - 20;
-    size_t height = fheight - 20;
-
-    dc.SetDeviceOrigin(10,10);
+    size_t height = fheight - 20 - th*1.25;
 
     // *** draw array element bars
 
