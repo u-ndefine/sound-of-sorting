@@ -126,7 +126,9 @@ const struct AlgoEntry g_algolist[] =
     { _("Stable Selection Sort"), &StableSelectionSort, UINT_MAX, inversion_count_instrumented,
       wxEmptyString },
     { _("Stable Quick Sort"), &StableQuickSort, UINT_MAX, inversion_count_instrumented,
-      wxEmptyString},
+      wxEmptyString },
+    { _("In-place Gravity Sort"), &InGravitySort, UINT_MAX, 256,
+      wxEmptyString },
     { _("Quad Stooge Sort"), &QuadStoogeSort, 512, inversion_count_instrumented,
       _("Custom sort.") },
     { _("Y-Slow Sort"), &YSlowSort, 64, inversion_count_instrumented,
@@ -148,7 +150,7 @@ const struct AlgoEntry g_algolist[] =
     { _("Float Sort"), &FloatSort, UINT_MAX, inversion_count_instrumented,
       _("Custom sort by Lance.") },
     { _("Quick Sort (LLL pointers)"), &QuickSortLLL, UINT_MAX, UINT_MAX,
-      _("Custom sort by u-ndefined.") },
+      _("Custom sort by u-ndefined.") }
 };
 
 const size_t g_algolist_size = sizeof(g_algolist) / sizeof(g_algolist[0]);
@@ -1825,10 +1827,14 @@ void BubbleScanQuicksort(SortArray& A, int lo, int hi)
 
         while (i <= j)
         {
+            ++g_compare_count; // is also compared in the beginning
             while (A[i].get() <= mean && i <= j)
+                ++g_compare_count; // count as comparison
                 i++;
 
+            ++g_compare_count; // is also compared in the beginning
             while (A[j].get() > mean && i <= j)
+                ++g_compare_count; // count as comparison
                 j--;
 
             if (i <= j) { A.swap(i++,j--); }
@@ -2067,8 +2073,8 @@ void StableQuickSort(SortArray& A, size_t lo, size_t hi)
         volatile ssize_t loa_end = 0;
         A.watch(&loa_end, 3);
 
-        std::vector<value_type> loa(hi - lo);
-        std::vector<value_type> hia(hi - lo);
+        std::vector<value_type> loa(0);
+        std::vector<value_type> hia(0);
         int pivot = A[lo].get();
         for(size_t i = lo; i < hi; i++)
         {
@@ -2081,7 +2087,7 @@ void StableQuickSort(SortArray& A, size_t lo, size_t hi)
             }
         }
 
-        int p = j;
+        int p = loa_end;
         j = 0;
         while(loa.size() > 0)
         {
@@ -2250,4 +2256,50 @@ void Pstar(SortArray& A, int i, /* value of first element in sequence */ int m) 
 void BoseNelsonSorting(SortArray& A)
 {
     Pstar(A, 0, A.size()); /* sort the sequence {X1,...,Xn} */
+}
+
+// ****************************************************************************
+// ** In-place Gravity Sort
+
+void InGravitySort(SortArray& A, int lo, int hi)
+{
+    int sz = hi - lo;
+    int max = A.array_max();
+
+    // Make abacus
+    bool* abacus = new bool[sz*max];
+    // Fill abacus
+	for (int i = 0; i < sz; i++) {
+		int tmp = A[lo + i].get();
+		for (int j = 0; j < tmp; j++)
+			abacus[i*max+j] = true;
+		// Fill rest with zeroes
+		for (int j = tmp; j < max; j++) {
+			abacus[i*max+j] = false;
+		}
+	}
+
+    // simulate abacus
+	for (int i = max - 1; i >= 0; i--) {
+        A.mark(i);
+		int sum = 0;
+		for (int j = 0; j < sz; j++) {
+			if (abacus[i+j*max]) {
+				sum++;
+				abacus[i+j*max] = false;
+                int it = A[lo + j].get();
+                A.set(lo + j,ArrayItem(it-1));
+			}
+		}
+		for (int j = sz - 1; j >= sz - sum; j--) {
+			abacus[i+j*max] = true;
+            int it = A[lo + j].get();
+            A.set(lo + j,ArrayItem(it+1));
+		}
+        A.unmark(i);
+	}
+}
+
+void InGravitySort(SortArray& A){
+    InGravitySort(A, 0, A.size());
 }

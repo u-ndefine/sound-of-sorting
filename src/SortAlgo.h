@@ -118,6 +118,7 @@ void FloatSort(class SortArray& a);
 void StableSelectionSort(class SortArray& a);
 void QuickSortLLL(class SortArray& a);
 void BoseNelsonSorting(class SortArray& a);
+void InGravitySort(class SortArray& a);
 
 // ****************************************************************************
 // *** Iterator Adapter
