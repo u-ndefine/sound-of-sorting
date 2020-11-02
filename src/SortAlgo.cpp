@@ -127,7 +127,7 @@ const struct AlgoEntry g_algolist[] =
       wxEmptyString },
     { _("Stable Quick Sort"), &StableQuickSort, UINT_MAX, inversion_count_instrumented,
       wxEmptyString },
-    { _("In-place Gravity Sort"), &InGravitySort, UINT_MAX, 256,
+    { _("Gravity Sort"), &GravitySort, UINT_MAX, 256,
       wxEmptyString },
     { _("Quad Stooge Sort"), &QuadStoogeSort, 512, inversion_count_instrumented,
       _("Custom sort.") },
@@ -2259,9 +2259,9 @@ void BoseNelsonSorting(SortArray& A)
 }
 
 // ****************************************************************************
-// ** In-place Gravity Sort
+// ** Gravity Sort
 
-void InGravitySort(SortArray& A, int lo, int hi)
+void GravitySort(SortArray& A, int lo, int hi)
 {
     int sz = hi - lo;
     int max = A.array_max();
