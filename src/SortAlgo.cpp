@@ -2300,6 +2300,6 @@ void GravitySort(SortArray& A, int lo, int hi)
 	}
 }
 
-void InGravitySort(SortArray& A){
-    InGravitySort(A, 0, A.size());
+void GravitySort(SortArray& A){
+    GravitySort(A, 0, A.size());
 }
