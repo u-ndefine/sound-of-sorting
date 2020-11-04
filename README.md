@@ -1,6 +1,6 @@
 # Sound of Sorting mod
 
-Sound of Sorting with more sorts
+Sound of Sorting with more features
 
 ## Original Website and License
 
