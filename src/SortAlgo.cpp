@@ -36,6 +36,7 @@
 #include <algorithm>
 #include <numeric>
 #include <limits>
+#include <iostream>
 #include <inttypes.h>
 
 typedef ArrayItem value_type;
@@ -87,10 +88,12 @@ const struct AlgoEntry g_algolist[] =
       wxEmptyString },
     { _("Odd-Even Sort"), &OddEvenSort, UINT_MAX, 1024,
       wxEmptyString },
-    { _("Recursive Batcher's Bitonic Sort"), &BitonicSort, UINT_MAX, UINT_MAX, _("Older version.") },
-    { _("Iterative Batcher's Bitonic Sort"), &BitonicSortNetwork, UINT_MAX, UINT_MAX,
+    { _("Recursive Batcher's Bitonic Sort"), &BitonicSortRe, UINT_MAX, UINT_MAX, _("Older version.") },
+    { _("Iterative Batcher's Bitonic Sort"), &BitonicSortIt, UINT_MAX, UINT_MAX,
       wxEmptyString },
-    { _("Batcher's Odd-Even Merge Sort"), &BatcherSortNetwork, UINT_MAX, UINT_MAX,
+    { _("Recursive Batcher's Odd-Even Merge Sort"), &BatcherSortNetworkRe, UINT_MAX, UINT_MAX,
+      wxEmptyString },
+    { _("Iterative Batcher's Odd-Even Merge Sort"), &BatcherSortNetworkIt, UINT_MAX, UINT_MAX,
       wxEmptyString },
     { _("Cycle Sort"), &CycleSort, 512, UINT_MAX,
       wxEmptyString },
@@ -121,13 +124,19 @@ const struct AlgoEntry g_algolist[] =
       wxEmptyString },
     { _("Recursive Pairwise Sorting Network"), &PairwiseSorting, UINT_MAX, inversion_count_instrumented,
       wxEmptyString },
-    { _("Recursive Bose-Nelson Sorting Network"), &BoseNelsonSorting, UINT_MAX, UINT_MAX,
+    { _("Recursive Bose-Nelson Sorting Network"), &BoseNelsonSortingRe, UINT_MAX, UINT_MAX,
+      wxEmptyString },
+    { _("Iterative Bose-Nelson Sorting Network"), &BoseNelsonSortingIt, UINT_MAX, UINT_MAX,
       wxEmptyString },
     { _("Stable Selection Sort"), &StableSelectionSort, UINT_MAX, inversion_count_instrumented,
       wxEmptyString },
     { _("Stable Quick Sort"), &StableQuickSort, UINT_MAX, inversion_count_instrumented,
       wxEmptyString },
     { _("Gravity Sort"), &GravitySort, UINT_MAX, 256,
+      wxEmptyString },
+    { _("Less Bogo Sort"), &LessBogoSort, 20, UINT_MAX,
+      wxEmptyString },
+    { _("Flipped Min Heap Sort"), &FlippedMinHeapSort, UINT_MAX, UINT_MAX,
       wxEmptyString },
     { _("Quad Stooge Sort"), &QuadStoogeSort, 512, inversion_count_instrumented,
       _("Custom sort.") },
@@ -1178,53 +1187,6 @@ void BozoSort(SortArray& A)
 }
 
 // ****************************************************************************
-// *** Bitonic Sort
-
-// from http://www.iti.fh-flensburg.de/lang/algorithmen/sortieren/bitonic/oddn.htm
-
-namespace BitonicSortNS {
-
-static const bool ASCENDING = true;    // sorting direction
-
-static void compare(SortArray& A, int i, int j, bool dir)
-{
-    if (dir == (A[i] > A[j]))
-        A.swap(i, j);
-}
-
-static void bitonicMerge(SortArray& A, int lo, int n, bool dir)
-{
-    if (n > 1)
-    {
-        int m = largestPowerOfTwoLessThan(n);
-
-        for (int i = lo; i < lo + n - m; i++)
-            compare(A, i, i+m, dir);
-
-        bitonicMerge(A, lo, m, dir);
-        bitonicMerge(A, lo + m, n - m, dir);
-    }
-}
-
-static void bitonicSort(SortArray& A, int lo, int n, bool dir)
-{
-    if (n > 1)
-    {
-        int m = n / 2;
-        bitonicSort(A, lo, m, !dir);
-        bitonicSort(A, lo + m, n - m, dir);
-        bitonicMerge(A, lo, n, dir);
-    }
-}
-
-} // namespace BitonicSortNS
-
-void BitonicSort(SortArray& A)
-{
-    BitonicSortNS::bitonicSort(A, 0, A.size(), BitonicSortNS::ASCENDING);
-}
-
-// ****************************************************************************
 // *** Bitonic Sort as "Parallel" Sorting Network
 
 // from http://www.iti.fh-flensburg.de/lang/algorithmen/sortieren/bitonic/oddn.htm
@@ -1315,20 +1277,32 @@ static void bitonicSort(SortArray& A, unsigned int lo, unsigned int n, bool dir,
     }
 }
 
-void sort(SortArray& A)
+void sortIt(SortArray& A)
 {
     sequence.clear();
-    bitonicSort(A, 0, A.size(), BitonicSortNS::ASCENDING, 0);
+    bitonicSort(A, 0, A.size(), true, 0);
     std::sort(sequence.begin(), sequence.end());
+    replay(A);
+    sequence.clear();
+}
+
+void sortRe(SortArray& A)
+{
+    sequence.clear();
+    bitonicSort(A, 0, A.size(), true, 0);
     replay(A);
     sequence.clear();
 }
 
 } // namespace BitonicSortNS
 
-void BitonicSortNetwork(SortArray& A)
+void BitonicSortIt(SortArray& A)
 {
-    BitonicSortNetworkNS::sort(A);
+    BitonicSortNetworkNS::sortIt(A);
+}
+void BitonicSortRe(SortArray& A)
+{
+    BitonicSortNetworkNS::sortRe(A);
 }
 
 // ****************************************************************************
@@ -1428,7 +1402,7 @@ static void oddEvenMergeSort(SortArray& A, unsigned int lo, unsigned int n,
     }
 }
 
-void sort(SortArray& A)
+void sortIt(SortArray& A)
 {
     sequence.clear();
 
@@ -1441,11 +1415,28 @@ void sort(SortArray& A)
     sequence.clear();
 }
 
+void sortRe(SortArray& A)
+{
+    sequence.clear();
+
+    unsigned int n = largestPowerOfTwoLessThan(A.size());
+    if (n != A.size()) n *= 2;
+
+    oddEvenMergeSort(A, 0, n, 0);
+    replay(A);
+    sequence.clear();
+}
+
 } // namespace BatcherSortNetworkNS
 
-void BatcherSortNetwork(SortArray& A)
+void BatcherSortNetworkIt(SortArray& A)
 {
-    BatcherSortNetworkNS::sort(A);
+    BatcherSortNetworkNS::sortIt(A);
+}
+
+void BatcherSortNetworkRe(SortArray& A)
+{
+    BatcherSortNetworkNS::sortRe(A);
 }
 
 // ****************************************************************************
@@ -1775,7 +1766,7 @@ void YSlowSort(SortArray& A)
 // ****************************************************************************
 // ** Quad Stooge Sort
 
-//
+// sort idea by EilrahcF
 
 void QuadStoogeSort(SortArray& A, int i, int j)
 {
@@ -1827,14 +1818,10 @@ void BubbleScanQuicksort(SortArray& A, int lo, int hi)
 
         while (i <= j)
         {
-            ++g_compare_count; // is also compared in the beginning
             while (A[i].get() <= mean && i <= j)
-                ++g_compare_count; // count as comparison
                 i++;
 
-            ++g_compare_count; // is also compared in the beginning
             while (A[j].get() > mean && i <= j)
-                ++g_compare_count; // count as comparison
                 j--;
 
             if (i <= j) { A.swap(i++,j--); }
@@ -2088,11 +2075,11 @@ void StableQuickSort(SortArray& A, size_t lo, size_t hi)
         }
 
         int p = loa_end;
-        j = 0;
+        j = A.size();
         while(loa.size() > 0)
         {
-            ASSERT(j < A.size());
-            A.set(j++, loa[loa.size() - 1]);
+            ASSERT(j > 0);
+            A.set(--j, loa[loa.size() - 1]);
             loa.pop_back();
         }
 
@@ -2100,8 +2087,8 @@ void StableQuickSort(SortArray& A, size_t lo, size_t hi)
 
         while(hia.size() > 0)
         {
-            ASSERT(j < A.size());
-            A.set(j++, hia[hia.size() - 1]);
+            ASSERT(j > 0);
+            A.set(--j, hia[hia.size() - 1]);
             hia.pop_back();
         }
 
@@ -2197,31 +2184,89 @@ void QuickSortLLL(SortArray& A)
     QuickSortLLL(A, 0, A.size());
 }
 
-// ****************************************************************************
-// ** Bose-Nelson Sorting Network (Recursive)
+// ********************************************************************************
+// ** Bose-Nelson Sorting Network as "Parallel" Sorting Network + Recursive version
 
-// implemented by atinm, slightly modified
+// implemented by atinm, modified by me (u-ndefined)
 
-void Pbracket(SortArray& A, int i,  /* value of first element in sequence 1 */
-         int x,  /* length of sequence 1 */
-         int j,  /* value of first element in sequence 2 */
-         int y)  /* length of sequence 2 */
+// modified to first record the recursively generated swap sequence, and then
+// sort it back into the order a parallel sorting network would perform the
+// swaps in
+
+namespace BoseNelsonNetworkNS {
+
+struct swappair_type
 {
-    int a, b;
+    // swapped positions
+    unsigned int i,j;
 
-    if(x == 1 && y == 1) { if(A[i] > A[j]) { A.swap(i,j); } } /* 1 comparison sorts 2 items */
+    // depth of recursions: sort / merge
+    unsigned int sort_depth, merge_depth;
+
+    swappair_type(unsigned int _i, unsigned int _j,
+                  unsigned int _sort_depth, unsigned int _merge_depth)
+        : i(_i), j(_j),
+          sort_depth(_sort_depth), merge_depth(_merge_depth)
+    { }
+
+    // order relation for sorting swaps
+    bool operator < (const swappair_type& b) const
+    {
+        if (sort_depth != b.sort_depth)
+            return sort_depth > b.sort_depth;
+
+        if (merge_depth != b.merge_depth)
+            return merge_depth > b.merge_depth;
+
+        return i < b.i;
+    }
+};
+
+typedef std::vector<swappair_type> sequence_type;
+std::vector<swappair_type> sequence;
+
+void replay(SortArray& A)
+{
+    for (sequence_type::const_iterator si = sequence.begin();
+         si != sequence.end(); ++si)
+    {
+        if (A[si->i] > A[si->j])
+            A.swap(si->i, si->j);
+    }
+}
+
+static void compare(SortArray& A, unsigned int i, unsigned int j,
+                    unsigned int sort_depth, unsigned int merge_depth)
+{
+    // skip all swaps beyond end of array
+    ASSERT(i < j);
+    if (j >= A.size()) return;
+
+    sequence.push_back( swappair_type(i,j, sort_depth, merge_depth) );
+
+    //if (A[i] > A[j]) A.swap(i, j);
+}
+
+void bosemerge(SortArray& A, unsigned int i,  /* value of first element in sequence 1 */
+         unsigned int x,  /* length of sequence 1 */
+         unsigned int j,  /* value of first element in sequence 2 */
+         unsigned int y,  /* length of sequence 2 */
+         unsigned int sort_depth)  
+{
+    unsigned int a, b;
+
+    if(x == 1 && y == 1) { compare(A, i, j, sort_depth, j - i); } /* 1 comparison sorts 2 items */
     else if(x == 1 && y == 2)
     {
         /* 2 comparisons inserts an item into an
          * already sorted sequence of length 2. */
-        if(A[i] > A[j + 1]) { A.swap(i,j + 1); }
-        if(A[i] > A[j]) { A.swap(i,j); };
+        compare(A, i, j + 1, sort_depth, (j + 1) - i);
+        compare(A, i, j, sort_depth, j - i);
     }
     else if(x == 2 && y == 1)
     {
-        /* As above, but inserting j */
-        if(A[i] > A[j]) { A.swap(i,j); }
-        if(A[i + 1] > A[j]) { A.swap(i + 1,j); }
+        compare(A, i, j, sort_depth, j - i);
+        compare(A, i + 1, j, sort_depth, j -(i + 1));
     }
     else
     {
@@ -2231,13 +2276,14 @@ void Pbracket(SortArray& A, int i,  /* value of first element in sequence 1 */
          * can do this, we eventually merge the two. */
         a = x/2;
         b = (x & 1) ? (y/2) : ((y + 1)/2);
-        Pbracket(A, i, a, j, b);
-        Pbracket(A, (i + a), (x - a), (j + b), (y - b));
-        Pbracket(A, (i + a), (x - a), j, b);
+        bosemerge(A, i, a, j, b, sort_depth);
+        bosemerge(A, (i + a), (x - a), (j + b), (y - b), sort_depth);
+        bosemerge(A, (i + a), (x - a), j, b, sort_depth);
     }
 }
 
-void Pstar(SortArray& A, int i, /* value of first element in sequence */ int m) /* length of sequence */
+void bosepartition(SortArray& A, unsigned int i, /* value of first element in sequence */ unsigned int m, /* length of sequence */
+    unsigned int sort_depth) 
 {
     int a;
 
@@ -2247,30 +2293,55 @@ void Pstar(SortArray& A, int i, /* value of first element in sequence */ int m) 
          * generate a sorting method for each,
          * and merge the two sub-networks. */
         a = m/2;
-        Pstar(A, i, a);
-        Pstar(A, (i + a), (m - a));
-        Pbracket(A, i, a, (i + a), (m - a));
+        bosepartition(A, i, a, sort_depth+1);
+        bosepartition(A, (i + a), (m - a), sort_depth+1);
+        bosemerge(A, i, a, (i + a), (m - a), sort_depth);
     }
 }
 
-void BoseNelsonSorting(SortArray& A)
+void sortIt(SortArray& A)
 {
-    Pstar(A, 0, A.size()); /* sort the sequence {X1,...,Xn} */
+    sequence.clear();
+    bosepartition(A, 0, A.size(), 0);
+    std::sort(sequence.begin(), sequence.end());
+    replay(A);
+    sequence.clear();
+}
+
+void sortRe(SortArray& A)
+{
+    sequence.clear();
+    bosepartition(A, 0, A.size(), 0);
+    replay(A);
+    sequence.clear();
+}
+
+
+} // namespace BoseNelsonNetworkNS
+
+void BoseNelsonSortingIt(SortArray& A)
+{
+    BoseNelsonNetworkNS::sortIt(A); /* sort the sequence {X1,...,Xn} */
+}
+
+void BoseNelsonSortingRe(SortArray& A)
+{
+    BoseNelsonNetworkNS::sortRe(A); /* sort the sequence {X1,...,Xn} */
 }
 
 // ****************************************************************************
 // ** Gravity Sort
 
-void GravitySort(SortArray& A, int lo, int hi)
+void GravitySort(SortArray& A)
 {
-    int sz = hi - lo;
+    int sz = A.size();
     int max = A.array_max();
 
     // Make abacus
     bool* abacus = new bool[sz*max];
     // Fill abacus
 	for (int i = 0; i < sz; i++) {
-		int tmp = A[lo + i].get();
+		int tmp = A[i].get();
 		for (int j = 0; j < tmp; j++)
 			abacus[i*max+j] = true;
 		// Fill rest with zeroes
@@ -2281,25 +2352,132 @@ void GravitySort(SortArray& A, int lo, int hi)
 
     // simulate abacus
 	for (int i = max - 1; i >= 0; i--) {
-        A.mark(i);
-		int sum = 0;
+		volatile ssize_t sum = 0;
 		for (int j = 0; j < sz; j++) {
 			if (abacus[i+j*max]) {
 				sum++;
-				abacus[i+j*max] = false;
-                int it = A[lo + j].get();
-                A.set(lo + j,ArrayItem(it-1));
+                int it = A[j].get();
+                A.set(j,ArrayItem(it-1));
 			}
 		}
+        A.mark(sz - sum);
 		for (int j = sz - 1; j >= sz - sum; j--) {
-			abacus[i+j*max] = true;
-            int it = A[lo + j].get();
-            A.set(lo + j,ArrayItem(it+1));
+            int it = A[j].get();
+            A.set(j,ArrayItem(it+1));
 		}
-        A.unmark(i);
+        A.unmark(sz - sum);
 	}
 }
 
-void GravitySort(SortArray& A){
-    GravitySort(A, 0, A.size());
+// ****************************************************************************
+// ** Less Bogo Sort
+
+void LessBogoSort(SortArray& A)
+{
+    volatile ssize_t cur = 0;
+    A.watch(&cur);
+
+    // keep a permutation of [0,size)
+    std::vector<size_t> perm(A.size());
+    for (size_t i = 0; i < A.size(); ++i)
+        perm[i] = i;
+
+    while (cur < A.size() - 1)
+    {
+        size_t k = cur;
+        while(++k < A.size()) {
+            if(A[k] < A[cur]) {break;}
+        }
+        if(k == A.size()) {
+            cur++;
+            perm.pop_back();
+            for (size_t i = 0; i < A.size() - cur; ++i)
+                perm[i] = i;
+        } else {
+            // pick a random permutation of indexes
+            std::random_shuffle(perm.begin(), perm.end());
+            // permute array in-place
+            std::vector<char> pmark(A.size() - cur, 0);
+
+            for (size_t i = 0; i < A.size() - cur; ++i)
+            {
+                if (pmark[i]) continue;
+
+                // walk cycle
+
+                size_t j = i;
+                while ( perm[j] != i )
+                {
+                    ASSERT(!pmark[j]);
+                    A.swap(j + cur, perm[j] + cur);
+                    pmark[j] = 1;
+
+                    j = perm[j];
+                }
+
+                ASSERT(!pmark[j]);
+                pmark[j] = 1;
+            }
+
+            for (size_t i = 0; i < A.size() - cur; ++i)
+                ASSERT(pmark[i]);
+        }
+    }
+
+    A.unwatch_all();
+}
+
+void FlippedMinHeapSort(SortArray& A)
+{
+    size_t n = A.size(), i = n / 2;
+    ssize_t k = 0;
+
+    // mark heap levels with different colors
+    for (size_t j = 0; j < i; ++j) {A.mark(j, log(prevPowerOfTwo(n-j)) / log(2) + 4);}
+
+    i--;
+
+    while (1)
+    {
+        if (i < (n - 1)) {
+            // build heap, sift A[i] down the heap
+            i++;
+        }
+        else {
+        
+            // pop smallest element from heap: swap front to back, and sift
+            // front A[0] down the heap
+            if (k == n-1) return;
+            A.swap(k,n-1);
+
+            A.mark(k);
+            if ((k-1) > 0) A.unmark(k-1);
+            k++;
+        }
+
+        ssize_t parent = i;
+        ssize_t child = n - ((n-i)*2);
+
+
+        // sift operation - push the value of A[i] down the heap
+        while (child > k)
+        {
+            if (((child - 1) > k) && (A[child - 1] < A[child])) {
+                child--;
+            }
+            if (A[child] < A[parent]) {
+                A.swap(parent, child);
+                parent = child;
+                child = n - ((n - parent)*2);
+            }
+            else {
+                break;
+            }
+        }
+
+
+        // mark heap levels with different colors
+        A.mark(i, log(prevPowerOfTwo(n-i)) / log(2) + 4);
+    }
+
 }

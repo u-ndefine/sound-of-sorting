@@ -80,9 +80,10 @@ void ShellSort(SortArray& a);
 void HeapSort(class SortArray& a);
 void SmoothSort(class SortArray& a);
 
-void BitonicSort(SortArray& a);
-void BitonicSortNetwork(SortArray& a);
-void BatcherSortNetwork(SortArray& a);
+void BitonicSortRe(SortArray& a);
+void BitonicSortIt(SortArray& a);
+void BatcherSortNetworkRe(SortArray& a);
+void BatcherSortNetworkIt(SortArray& a);
 
 void RadixSortLSD(class SortArray& a);
 void RadixSortMSD(class SortArray& a);
@@ -117,8 +118,11 @@ void StableQuickSort(class SortArray& a);
 void FloatSort(class SortArray& a);
 void StableSelectionSort(class SortArray& a);
 void QuickSortLLL(class SortArray& a);
-void BoseNelsonSorting(class SortArray& a);
+void BoseNelsonSortingIt(class SortArray& a);
+void BoseNelsonSortingRe(class SortArray& a);
 void GravitySort(class SortArray& a);
+void LessBogoSort(class SortArray& a);
+void FlippedMinHeapSort(class SortArray& a);
 
 // ****************************************************************************
 // *** Iterator Adapter
