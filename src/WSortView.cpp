@@ -35,6 +35,7 @@ double g_delay = 0;
 bool g_algo_running = false;
 
 wxString g_algo_name;
+bool g_stats_button;
 
 WSortView::WSortView(wxWindow *parent, int id, class WMain_wxg* wmain)
     : wxPanel(parent, id),
@@ -152,13 +153,16 @@ void WSortView::paint(wxDC& dc, const wxSize& dcsize)
 
     // draw text
 
-    dc.SetTextForeground(*wxWHITE);
-    wxString algo_expand = g_algo_name + wxString(" - ") +
-      wxString(std::to_string(g_compare_count)) + wxString(" comparisons, ")
-      +wxString(std::to_string(g_access_count)) + wxString(" array accesses, ")
-      +((g_delay > 10) ? wxString::Format(_("%.0f ms delay"), g_delay) : wxString::Format(_("%.1f ms delay"), g_delay));
-    size_t th = dc.GetTextExtent(algo_expand).GetHeight();
-    dc.DrawText(algo_expand, 0, -2);
+    size_t th = 0;
+    if(g_stats_button) {
+        dc.SetTextForeground(*wxWHITE);
+        wxString algo_expand = g_algo_name + wxString(" - ") +
+          wxString(std::to_string(g_compare_count)) + wxString(" comparisons, ")
+          + wxString(std::to_string(g_access_count)) + wxString(" array accesses, ")
+          + ((g_delay > 10) ? wxString::Format(_("%.0f ms delay"), g_delay) : wxString::Format(_("%.1f ms delay"), g_delay));
+        th = dc.GetTextExtent(algo_expand).GetHeight();
+        dc.DrawText(algo_expand, 0, -2);
+    }
 
     if (m_array.size() == 0) return;
 
@@ -176,14 +180,21 @@ void WSortView::paint(wxDC& dc, const wxSize& dcsize)
     // thus n bars need n * w + (n-1) * w/2 width
 
     // 1st variant: space is 0.5 of bar size
-    //double wbar = width / (size + (size-1) / 2.0);
-    //double bstep = 1.5 * wbar;
+    // double wbar = width / (size + (size-1) / 2.0);
+    // double bstep = 1.5 * wbar;
 
     // 2nd variant: one pixel between bars
     double wbar = (width - (size-1)) / (double)size;
-    if (width <= (size-1)) wbar = 0.0;
 
     double bstep = wbar + 1.0;
+
+    if(width <= (size-1)) {
+        bstep = 1.0;
+    } else 
+    if (width <= ((double)size*2.0)){
+        wbar = width / (double)size;
+        bstep = wbar;
+    }
 
     // special case for bstep = 2 pixel -> draw 2 pixel bars instead of 1px
     // bar/1px gaps.
@@ -234,19 +245,30 @@ void WSortView::paint(wxDC& dc, const wxSize& dcsize)
 
     for (size_t i = 0; i < size; ++i)
     {
+        
         int clr = m_array.GetIndexColor(i);
 
         ASSERT(clr < (int)(sizeof(brushes) / sizeof(brushes[0])));
         dc.SetPen( pens[clr] );
         dc.SetBrush( brushes[clr] );
 
-        dc.DrawRectangle(i*bstep, height,
+        dc.DrawRectangle(i*bstep, height+th*1.25,
                          wxMax(1, // draw at least 1 pixel
                                (wxCoord((i+1)*bstep) - wxCoord(i*bstep)) // integral gap to next bar
                                - (bstep - wbar)    // space between bars
                              ),
                          -(double)height * m_array.direct(i).get_direct() / m_array.array_max());
+        
+        /*int clr = m_array.GetIndexColor(i);
+
+        ASSERT(clr < (int)(sizeof(brushes) / sizeof(brushes[0])));
+        dc.SetPen( pens[clr] );
+        dc.SetBrush( brushes[clr] );
+
+        dc.DrawCircle((double)width/2.0 + sin((double)i / size * 6.28318531) * height / 2.0 * abs(m_array.array_max() - abs((double)i - m_array.direct(i).get_direct() + 1) * 2.0) / m_array.array_max(),
+                     (double)height/2.0 + th*0.625 - cos((double)i / size * 6.28318531) * height / 2.0 * abs(m_array.array_max() - abs((double)i - m_array.direct(i).get_direct() + 1) * 2.0) / m_array.array_max(), 3);*/
     }
+
 }
 
 BEGIN_EVENT_TABLE(WSortView, wxWindow)

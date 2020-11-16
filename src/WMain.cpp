@@ -31,19 +31,20 @@ WMain::WMain(wxWindow* parent)
 {
     m_thread = NULL;
     g_sound_on = false;
+    g_stats_button = false;
 
-    recordButton->Hide();
+    // recordButton->Hide();
     panelQuickSortPivot->Hide();
     infoTextctrl->Hide();
 
     // program icon
     {    
         #include "sos.xpm"
-	SetIcon( wxIcon(sos) );
+	    SetIcon( wxIcon(sos) );
     }
 
     // program version
-    SetTitle(_("The Sound of Sorting " PACKAGE_VERSION " - http://panthema.net/2013/sound-of-sorting"));
+    SetTitle(_("Modded Sound of Sorting")); //  
 
     // resize right split window
     splitter_0->SetSashPosition(GetSize().x - 280);
@@ -116,6 +117,7 @@ BEGIN_EVENT_TABLE(WMain, WMain_wxg)
     EVT_TOGGLEBUTTON(ID_SOUND_BUTTON, WMain::OnSoundButton)
     EVT_BUTTON(ID_RANDOM_BUTTON, WMain::OnRandomButton)
     EVT_BUTTON(wxID_ABOUT, WMain::OnAboutButton)
+    EVT_TOGGLEBUTTON(ID_RECORD_BUTTON, WMain::OnRecordButton)
 
     EVT_COMMAND_SCROLL(ID_SPEED_SLIDER, WMain::OnSpeedSliderChange)
     EVT_COMMAND_SCROLL(ID_SOUND_SUSTAIN_SLIDER, WMain::OnSoundSustainSliderChange)
@@ -187,6 +189,7 @@ void WMain::OnRunButton(wxCommandEvent &event)
 
         delete m_thread;
         m_thread = NULL;
+        
     }
 
     if (event.IsChecked())
@@ -214,6 +217,7 @@ void WMain::OnRunButton(wxCommandEvent &event)
 
 void WMain::OnRunFinished(wxCommandEvent&)
 {
+
     // join finished thread
     if (m_thread)
     {
@@ -290,8 +294,8 @@ public:
     WAbout(wxWindow* parent)
         : WAbout_wxg(parent, wxID_ANY, wxEmptyString)
     {
-        labelTitle->SetLabel(_("The Sound of Sorting " PACKAGE_VERSION));
-        labelBuildDate->SetLabel(_("Build Date: " __DATE__));
+        labelTitle->SetLabel(_("Modded Sound of Sorting ")); // + PACKAGE_VERSION
+        labelBuildDate->SetLabel(_("Build Date")); // "Build Date: " __DATE__
 
         GetSizer()->Fit(this);
         Layout();
@@ -303,6 +307,11 @@ void WMain::OnAboutButton(wxCommandEvent&)
 {
     WAbout dlg(this);
     dlg.ShowModal();
+}
+
+void WMain::OnRecordButton(wxCommandEvent&)
+{
+    g_stats_button = recordButton->GetValue();
 }
 
 void WMain::OnSpeedSliderChange(wxScrollEvent &event)
@@ -377,6 +386,7 @@ void WMain::OnAlgoList(wxCommandEvent&)
     wxString text;
 
     bool isQuickSort = (algoList->GetStringSelection().Contains(_("Quick Sort")));
+    
     panelQuickSortPivot->Show(isQuickSort);
 
     if (sel >= 0 && sel < (int)g_algolist_size && !g_algolist[sel].text.IsEmpty())
