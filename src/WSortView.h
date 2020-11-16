@@ -33,6 +33,9 @@
 /// global sound processing on/off
 extern bool g_sound_on;
 
+/// stats for WSortView
+extern bool g_stats_button;
+
 /// multiplying g_delay with this value yields the duration a sound is sustained
 extern double g_sound_sustain;
 
@@ -44,6 +47,7 @@ void SoundReset();
 
 /// append access to start output in next sound callback
 void SoundAccess(size_t i);
+
 
 // ----------------------------------------------------------------------------
 
