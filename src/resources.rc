@@ -20,10 +20,10 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "ProductName", "Sound of Sorting"
+            VALUE "ProductName", "Modded Sound of Sorting"
             VALUE "ProductVersion", "0,0,0,0"
-            VALUE "CompanyName", "Timo Bingmann"
-            VALUE "FileDescription", "The Sound of Sorting - A Visualization and ""Audibilization"" of Sorting Algorithms"
+            VALUE "CompanyName", "Timo Bingmann (modified by u-ndefined)"
+            VALUE "FileDescription", "Modded Sound of Sorting - A Visualization and ""Audibilization"" of Sorting Algorithms"
             VALUE "FileVersion", "0,0,0,0"
             VALUE "Comments", "http://panthema.net/2013/sound-of-sorting/"
             VALUE "LegalCopyright", "Copyright (C) 2013-2014 Timo Bingmann"
