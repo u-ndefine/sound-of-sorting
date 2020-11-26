@@ -44,7 +44,7 @@ WMain::WMain(wxWindow* parent)
     }
 
     // program version
-    SetTitle(_("Modded Sound of Sorting")); //  
+    SetTitle(_("The Sound of Sorting " PACKAGE_VERSION));
 
     // resize right split window
     splitter_0->SetSashPosition(GetSize().x - 280);
@@ -294,8 +294,8 @@ public:
     WAbout(wxWindow* parent)
         : WAbout_wxg(parent, wxID_ANY, wxEmptyString)
     {
-        labelTitle->SetLabel(_("Modded Sound of Sorting ")); // + PACKAGE_VERSION
-        labelBuildDate->SetLabel(_("Build Date")); // "Build Date: " __DATE__
+        labelTitle->SetLabel(_("Modded Sound of Sorting " PACKAGE_VERSION));
+        labelBuildDate->SetLabel(_("Build Date: " __DATE__));
 
         GetSizer()->Fit(this);
         Layout();
