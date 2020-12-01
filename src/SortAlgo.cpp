@@ -1,7 +1,7 @@
 /******************************************************************************
  * src/SortAlgo.cpp
  *
- * Implementations is many sorting algorithms.
+ * Implementations of many sorting algorithms.
  *
  * Note that these implementations may not be as good/fast as possible. Some
  * are modified so that the visualization is more instructive.
@@ -36,8 +36,9 @@
 #include <algorithm>
 #include <numeric>
 #include <limits>
-#include <iostream>
+// #include <iostream>
 #include <inttypes.h>
+#include <queue>
 
 typedef ArrayItem value_type;
 
@@ -81,7 +82,7 @@ const struct AlgoEntry g_algolist[] =
     { _("Comb Sort"), &CombSort, UINT_MAX, UINT_MAX,
       wxEmptyString },
     { _("Shell Sort"), &ShellSort, UINT_MAX, 1024,
-      wxEmptyString },
+      "" },
     { _("Heap Sort"), &HeapSort, UINT_MAX, UINT_MAX,
       wxEmptyString },
     { _("Smooth Sort"), &SmoothSort, UINT_MAX, 1024,
@@ -120,43 +121,117 @@ const struct AlgoEntry g_algolist[] =
       wxEmptyString },
     { _("Slow Sort"), &SlowSort, 128, inversion_count_instrumented,
       wxEmptyString },
-    { wxEmptyString, &PairwiseSorting, UINT_MAX, inversion_count_instrumented,
+    { wxEmptyString, &PairwiseSortingIt, UINT_MAX, inversion_count_instrumented,
       wxEmptyString },
-    { _("Recursive Pairwise Sorting Network"), &PairwiseSorting, UINT_MAX, inversion_count_instrumented,
+    { _("Recursive Pairwise Sorting Network"), &PairwiseSortingRe, UINT_MAX, inversion_count_instrumented,
       wxEmptyString },
-    { _("Recursive Bose-Nelson Sorting Network"), &BoseNelsonSortingRe, UINT_MAX, UINT_MAX,
+    { _("Recursive Bose-Nelson Sorting Network"), &BoseNelsonSortingRe, UINT_MAX, inversion_count_instrumented,
       wxEmptyString },
-    { _("Iterative Bose-Nelson Sorting Network"), &BoseNelsonSortingIt, UINT_MAX, UINT_MAX,
+    { _("Iterative Bose-Nelson Sorting Network"), &BoseNelsonSortingIt, UINT_MAX, inversion_count_instrumented,
       wxEmptyString },
-    { _("Stable Selection Sort"), &StableSelectionSort, UINT_MAX, inversion_count_instrumented,
+    { _("Stable Selection Sort"), &StableSelectionSort, UINT_MAX, UINT_MAX,
       wxEmptyString },
-    { _("Stable Quick Sort"), &StableQuickSort, UINT_MAX, inversion_count_instrumented,
+    { _("Stable Quick Sort"), &StableQuickSort, UINT_MAX, UINT_MAX,
       wxEmptyString },
-    { _("Gravity Sort"), &GravitySort, UINT_MAX, 256,
+    { _("Stable Stooge Sort"), &StableStoogeSort, 256, inversion_count_instrumented,
+      wxEmptyString },
+    { _("Iterative Quick Sort (LL ptrs)"), &IterativeQuickSortLL, UINT_MAX, UINT_MAX,
+      wxEmptyString },
+    { _("Iterative Quick Sort (LR ptrs)"), &IterativeQuickSortLR, UINT_MAX, UINT_MAX,
+      wxEmptyString },
+    { _("Iterative Stooge Sort"), &IterativeStoogeSort, 256, inversion_count_instrumented,
+      wxEmptyString },
+    { _("Gravity Sort"), &GravitySort, UINT_MAX, inversion_count_instrumented,
       wxEmptyString },
     { _("Less Bogo Sort"), &LessBogoSort, 20, UINT_MAX,
       wxEmptyString },
+    { _("Reverse Insertion Sort"), &ReverseInsertionSort, UINT_MAX, UINT_MAX,
+      wxEmptyString },
+    { _("Bingo Sort"), &BingoSort, UINT_MAX, UINT_MAX,
+      _("A variant of selection sort for equal items.") },
+    { _("Proxmap Sort"), &ProxmapSort, UINT_MAX, inversion_count_instrumented,
+      wxEmptyString },
     { _("Flipped Min Heap Sort"), &FlippedMinHeapSort, UINT_MAX, UINT_MAX,
       wxEmptyString },
-    { _("Quad Stooge Sort"), &QuadStoogeSort, 512, inversion_count_instrumented,
+    { _("Circle Sort"), &CircleSort, UINT_MAX, UINT_MAX,
       _("Custom sort.") },
-    { _("Y-Slow Sort"), &YSlowSort, 64, inversion_count_instrumented,
+    { _("Iterative Circle Sort"), &IterativeCircleSort, UINT_MAX, UINT_MAX,
       _("Custom sort.") },
-    { _("Bubble Scan Quicksort"), &BubbleScanQuicksort, UINT_MAX, inversion_count_instrumented,
+    { _("Balanced Sorting Network"), &BalancedSortingNetwork, UINT_MAX, UINT_MAX,
+      _("Custom sort.") },
+    { _("Pancake Sort"), &PancakeSort, UINT_MAX, 256,
+      _("Custom sort.") },
+    { _("Quasi-Pancake Sort"), &QuasiPancakeSort, UINT_MAX, 256,
+      _("Custom sort.") },
+    { _("Binary Quasi-Pancake Sort"), &BinaryQuasiPancakeSort, UINT_MAX, 256,
+      _("Custom sort.") },
+    { _("Shove Sort"), &ShoveSort, 256, UINT_MAX,
+      _("Custom sort.") },
+    { _("Iterative Linked Quick Sort (LL ptrs)"), &IterativeLinkedQuickSortLL, UINT_MAX, UINT_MAX,
+      _("Custom sort. Uses a queue to keep track of the split ranges.") },
+    { _("Iterative Linked Quick Sort (LR ptrs)"), &IterativeLinkedQuickSortLR, UINT_MAX, UINT_MAX,
+      _("Custom sort. Uses a queue to keep track of the split ranges.") },
+    { _("Slope Sort"), &SlopeSort, UINT_MAX, UINT_MAX,
+      _("Custom sort by EilrahcF.") },
+    { _("Slide Sort"), &SlideSort, UINT_MAX, UINT_MAX,
+      _("Custom sort by EilrahcF.") },
+    { _("Grate Sort"), &GrateSort, UINT_MAX, UINT_MAX,
+      _("Custom sort by EilrahcF.") },
+    { _("Reverse Grate Sort"), &ReverseGrateSort, UINT_MAX, UINT_MAX,
+      _("Custom sort by EilrahcF.") },
+    { _("Cocktail Grate Sort"), &CocktailGrateSort, UINT_MAX, UINT_MAX,
+      _("Custom sort by EilrahcF.") },
+    { _("Quad Stooge Sort"), &QuadStoogeSort, 512, UINT_MAX,
+      _("Custom sort by EilrahcF.") },
+    { _("Balance Sort"), &BalanceSort, UINT_MAX, UINT_MAX,
+      _("Custom sort by EilrahcF.") },
+    { _("Linked Triangular Heap Sort"), &TriangularHeapSort, UINT_MAX, UINT_MAX,
+      _("Custom sort by EilrahcF.") },
+    { _("Hyper Stooge Sort"), &HyperStoogeSort, 8, inversion_count_instrumented,
+      _("Custom sort by EilrahcF.") },
+    { _("Checkerboard Heap Sort"), &CheckerboardHeapSort, UINT_MAX, UINT_MAX,
+      _("Custom sort by EilrahcF.") },
+    { _("Bogo Bogo Bogo Sort"), &BogoBogoBogoSort, 10, UINT_MAX,
+      _("Custom sort by EilrahcF. This version uses Bogo instead of Bogobogo instead.") },
+    { _("Room Sort"), &RoomSort, UINT_MAX, UINT_MAX,
+      _("Custom sort by EilrahcF. Each block is of size sqrt(n).") },
+    { _("Wiggle Sort"), &WiggleSort, UINT_MAX, UINT_MAX,
+      _("Custom sort by EilrahcF.") },
+    { _("Optimized Stable Quick Sort"), &OptiStableQuickSort, UINT_MAX, UINT_MAX,
+      _("Custom sort by aphitorite.") },
+    { _("Rotate Radix LSD Sort"), &RotateRadixLSD, 512, UINT_MAX, 
+      _("Custom sort by aphitorite.") },
+    { _("Rotate Radix MSD Sort"), &RotateRadixMSD, 512, UINT_MAX, 
+      _("Custom sort by aphitorite.") },
+    { _("Awkward Sort"), &AwkwardSort, 256, UINT_MAX, 
+      _("Custom sort by aphitorite.") },
+    { _("Odd-Even Transposition Merge Sort"), &OddEvenTransMergeSort, UINT_MAX, UINT_MAX, 
+      _("Custom sort by aphitorite.") },
+    { _("Bubble Scan Quicksort"), &BubbleScanQuicksort, UINT_MAX, UINT_MAX,
       _("Custom sort by aphitorite and thatsOven.") },
-    { _("Circle Sort"), &CircleSort, UINT_MAX, inversion_count_instrumented,
-      _("Custom sort.") },
-    { _("Circloid Sort"), &CircloidSort, UINT_MAX, inversion_count_instrumented,
+    { _("Modulo Sort"), &ModuloSort, 512, UINT_MAX,
+      _("Custom sort by McDude_73.") },
+    { _("Jump Down Sort"), &JumpDownSort, UINT_MAX, UINT_MAX,
+      _("Custom sort by fungamer2.") },
+    { _("Cocktail Shell Sort"), &CocktailShellSort, UINT_MAX, 1024,
+      _("Custom sort by fungamer2. Each gap decreases by a factor of sqrt(n).") },
+    { _("Odd Even Bogo Sort"), &OddEvenBogoSort, 256, UINT_MAX,
+      _("Custom sort by fungamer2.") },
+    { _("Circloid Sort"), &CircloidSort, UINT_MAX, UINT_MAX,
       _("Custom sort by yuji.") },
-    { _("Kiyomi Sort"), &KiyomiSort, UINT_MAX, inversion_count_instrumented,
+    { _("Kiyomi Sort"), &KiyomiSort, UINT_MAX, UINT_MAX,
       _("Custom sort by yuji.") },
-    { _("Kinnow Sort"), &KinnowSort, UINT_MAX, inversion_count_instrumented,
+    { _("Kinnow Sort"), &KinnowSort, UINT_MAX, UINT_MAX,
       _("Custom sort by yuji.") },
-    { _("Chinotto Sort"), &ChinottoSort, UINT_MAX, inversion_count_instrumented,
+    { _("Chinotto Sort"), &ChinottoSort, UINT_MAX, UINT_MAX,
       _("Custom sort by yuji.") },
-    { _("Mandarin Orange Sort"), &MandarinOrangeSort, UINT_MAX, inversion_count_instrumented,
+    { _("Mandarin Orange Sort"), &MandarinOrangeSort, UINT_MAX, UINT_MAX,
       _("Custom sort by yuji.") },
-    { _("Float Sort"), &FloatSort, UINT_MAX, inversion_count_instrumented,
+    { _("Y-Slow Sort"), &YSlowSort, 64, inversion_count_instrumented,
+      _("Custom sort by yuji.") },
+    { _("Float Sort"), &FloatSort, UINT_MAX, UINT_MAX,
+      _("Custom sort by Lance.") },
+    { _("Odd Even Sort (Base 3)"), &OddEvenBase3, UINT_MAX, UINT_MAX,
       _("Custom sort by Lance.") },
     { _("Quick Sort (LLL pointers)"), &QuickSortLLL, UINT_MAX, UINT_MAX,
       _("Custom sort by u-ndefined.") }
@@ -165,6 +240,105 @@ const struct AlgoEntry g_algolist[] =
 const size_t g_algolist_size = sizeof(g_algolist) / sizeof(g_algolist[0]);
 
 const struct AlgoEntry* g_algolist_end = g_algolist + g_algolist_size;
+
+
+// ****************************************************************************
+// *** Some useful functions for algorithms
+
+void InsertionSortExtra(SortArray& A, ssize_t lo, ssize_t hi)
+{
+    for (size_t i = lo + 1; i < hi; ++i)
+    {
+        ArrayItem tmp, key = A[i];
+        A.mark(i);
+
+        ssize_t j = i - 1;
+        while (j >= lo && (tmp = A[j]) > key)
+        {
+            A.set(j + 1, tmp);
+            j--;
+        }
+        A.set(j + 1, key);
+
+        A.unmark(i);
+    }
+}
+ 
+// ****************************************************************************
+
+bool CheckSorted(SortArray& A)
+{
+    size_t i;
+    ArrayItem prev = A[0];
+    A.mark(0);
+    for (i = 1; i < A.size(); ++i)
+    {
+        ArrayItem val = A[i];
+        if (prev > val) break;
+        prev = val;
+        A.mark(i);
+    }
+
+    if (i == A.size()) {
+        return true;
+    }
+
+    // unmark
+    while (i > 0) A.unmark(i--);
+    A.unmark(0);
+
+    return false;
+}
+
+// ****************************************************************************
+
+QuickSortPivotType g_quicksort_pivot = PIVOT_FIRST;
+
+// some quicksort variants use hi inclusive and some exclusive, we require it
+// to be _exclusive_. hi == array.end()!
+ssize_t QuickSortSelectPivot(SortArray& A, ssize_t lo, ssize_t hi)
+{
+    if (g_quicksort_pivot == PIVOT_FIRST)
+        return lo;
+
+    if (g_quicksort_pivot == PIVOT_LAST)
+        return hi-1;
+
+    if (g_quicksort_pivot == PIVOT_MID)
+        return (lo + hi) / 2;
+
+    if (g_quicksort_pivot == PIVOT_RANDOM)
+        return lo + (rand() % (hi - lo));
+
+    if (g_quicksort_pivot == PIVOT_MEDIAN3)
+    {
+        ssize_t mid = (lo + hi) / 2;
+
+        // cases if two are equal
+        if (A[lo] == A[mid]) return lo;
+        if (A[lo] == A[hi-1] || A[mid] == A[hi-1]) return hi-1;
+
+        // cases if three are different
+        return A[lo] < A[mid]
+            ? (A[mid] < A[hi-1] ? mid : (A[lo] < A[hi-1] ? hi-1 : lo))
+            : (A[mid] > A[hi-1] ? mid : (A[lo] < A[hi-1] ? lo : hi-1));
+    }
+
+    return lo;
+}
+
+wxArrayString QuickSortPivotText()
+{
+    wxArrayString sl;
+
+    sl.Add( _("First Item") );
+    sl.Add( _("Last Item") );
+    sl.Add( _("Middle Item") );
+    sl.Add( _("Random Item") );
+    sl.Add( _("Median of Three") );
+
+    return sl;
+}
 
 // ****************************************************************************
 // *** Selection Sort
@@ -222,26 +396,6 @@ void InsertionSort(SortArray& A)
             A.swap(j, j+1);
             j--;
         }
-
-        A.unmark(i);
-    }
-}
-
-// with extra item on stack
-void InsertionSort2(SortArray& A)
-{
-    for (size_t i = 1; i < A.size(); ++i)
-    {
-        value_type tmp, key = A[i];
-        A.mark(i);
-
-        ssize_t j = i - 1;
-        while (j >= 0 && (tmp = A[j]) > key)
-        {
-            A.set(j + 1, tmp);
-            j--;
-        }
-        A.set(j + 1, key);
 
         A.unmark(i);
     }
@@ -346,57 +500,6 @@ void MergeSortIterative(SortArray& A)
                   std::min(i + 2 * s, A.size()));
         }
     }
-}
-
-// ****************************************************************************
-// *** Quick Sort Pivot Selection
-
-QuickSortPivotType g_quicksort_pivot = PIVOT_FIRST;
-
-// some quicksort variants use hi inclusive and some exclusive, we require it
-// to be _exclusive_. hi == array.end()!
-ssize_t QuickSortSelectPivot(SortArray& A, ssize_t lo, ssize_t hi)
-{
-    if (g_quicksort_pivot == PIVOT_FIRST)
-        return lo;
-
-    if (g_quicksort_pivot == PIVOT_LAST)
-        return hi-1;
-
-    if (g_quicksort_pivot == PIVOT_MID)
-        return (lo + hi) / 2;
-
-    if (g_quicksort_pivot == PIVOT_RANDOM)
-        return lo + (rand() % (hi - lo));
-
-    if (g_quicksort_pivot == PIVOT_MEDIAN3)
-    {
-        ssize_t mid = (lo + hi) / 2;
-
-        // cases if two are equal
-        if (A[lo] == A[mid]) return lo;
-        if (A[lo] == A[hi-1] || A[mid] == A[hi-1]) return hi-1;
-
-        // cases if three are different
-        return A[lo] < A[mid]
-            ? (A[mid] < A[hi-1] ? mid : (A[lo] < A[hi-1] ? hi-1 : lo))
-            : (A[mid] > A[hi-1] ? mid : (A[lo] < A[hi-1] ? lo : hi-1));
-    }
-
-    return lo;
-}
-
-wxArrayString QuickSortPivotText()
-{
-    wxArrayString sl;
-
-    sl.Add( _("First Item") );
-    sl.Add( _("Last Item") );
-    sl.Add( _("Middle Item") );
-    sl.Add( _("Random Item") );
-    sl.Add( _("Median of Three") );
-
-    return sl;
 }
 
 // ****************************************************************************
@@ -726,7 +829,7 @@ void BubbleSort(SortArray& A)
                 swapped = true;
             }
         }
-        if(!swapped) { break; }
+        if(!swapped) { return; }
     }
 }
 
@@ -751,7 +854,7 @@ void CocktailShakerSort(SortArray& A)
                 swapped = true;
             }
         }
-        if(!swapped) { break; }
+        if(!swapped) { return; }
 
         lo = mov;
 
@@ -764,7 +867,7 @@ void CocktailShakerSort(SortArray& A)
                 swapped = true;
             }
         }
-        if(!swapped) { break; }
+        if(!swapped) { return; }
 
         hi = mov;
     }
@@ -953,7 +1056,7 @@ void HeapSort(SortArray& A)
         }
 
         // mark heap levels with different colors
-        A.mark(i, log(prevPowerOfTwo(i+1)) / log(2) + 4);
+        if(n == A.size()) A.mark(i, log(prevPowerOfTwo(i+1)) / log(2) + 4);
     }
 
 }
@@ -1096,31 +1199,6 @@ void StlHeapSort(SortArray& A)
 // *** BogoSort and more slow sorts
 
 // by Timo Bingmann
-
-bool CheckSorted(SortArray& A)
-{
-    size_t i;
-    value_type prev = A[0];
-    A.mark(0);
-    for (i = 1; i < A.size(); ++i)
-    {
-        value_type val = A[i];
-        if (prev > val) break;
-        prev = val;
-        A.mark(i);
-    }
-
-    if (i == A.size()) {
-        // this is amazing.
-        return true;
-    }
-
-    // unmark
-    while (i > 0) A.unmark(i--);
-    A.unmark(0);
-
-    return false;
-}
 
 void BogoSort(SortArray& A)
 {
@@ -1483,7 +1561,7 @@ static void sift(SortArray& A, int pshift, int head)
         }
     }
 
-    A.set(head, val);
+    A.set(head, val); 
 }
 
 static void trinkle(SortArray& A, int p, int pshift, int head, bool isTrusty)
@@ -1615,9 +1693,9 @@ void SmoothSort(SortArray& A)
 // ****************************************************************************
 // *** Stooge Sort
 
-void StoogeSort(SortArray& A, int i, int j)
+void StoogeSort(SortArray& A, int i, int j, bool stable)
 {
-    if (A[i] > A[j])
+    if ((j - i + 1 <= 2 || !stable) && A[i] > A[j])
     {
         A.swap(i, j);
     }
@@ -1629,9 +1707,9 @@ void StoogeSort(SortArray& A, int i, int j)
         A.mark(i, 3);
         A.mark(j, 3);
 
-        StoogeSort(A, i, j-t);
-        StoogeSort(A, i+t, j);
-        StoogeSort(A, i, j-t);
+        StoogeSort(A, i, j-t, stable);
+        StoogeSort(A, i+t, j, stable);
+        StoogeSort(A, i, j-t, stable);
 
         A.unmark(i);
         A.unmark(j);
@@ -1640,7 +1718,12 @@ void StoogeSort(SortArray& A, int i, int j)
 
 void StoogeSort(SortArray& A)
 {
-    StoogeSort(A, 0, A.size()-1);
+    StoogeSort(A, 0, A.size()-1, false);
+}
+
+void StableStoogeSort(SortArray& A)
+{
+    StoogeSort(A, 0, A.size()-1, true);
 }
 
 // ****************************************************************************
@@ -1724,140 +1807,19 @@ void CycleSort(SortArray& A)
     CycleSort(A, A.size());
 }
 
-// ********************************************************************************
-// ***                               CUSTOM SORTS                               ***
-// *** https://www.youtube.com/playlist?list=PL5w_-zMAJC8tGIdBbUCoBFkAkiVMQClhZ ***
-// ********************************************************************************
-// ** Y - Slow Sort
 
-// by yuji
-
-void YSlowSort(SortArray& arr, int lo, int hi) 
-{ 
-    if (arr[lo] > arr[hi]) { arr.swap(lo, hi); }
-    if (hi - lo > 1) {
-        int m = (hi - lo + 1)/2.0;
-        for (int run = 0; run <= 1; run++) 
-        {
-            
-            arr.mark(hi, 3);
-
-            YSlowSort(arr, lo, hi-m);
-            YSlowSort(arr, lo+m, hi);
-
-            arr.unmark(hi);
-
-            arr.mark(lo, 2);
-            arr.mark(hi, 2);
-
-            YSlowSort(arr, lo+1, hi-1);
-            
-            arr.unmark(lo);
-            arr.unmark(hi);
-        }
-    }
-} 
-
-void YSlowSort(SortArray& A)
-{
-    YSlowSort(A, 0, A.size() - 1);
-}
-
-// ****************************************************************************
-// ** Quad Stooge Sort
-
-// sort idea by EilrahcF
-
-void QuadStoogeSort(SortArray& A, int i, int j)
-{
-    if (A[i] > A[j])
-    {
-        A.swap(i, j);
-    }
-
-    if (j - i + 1 >= 3)
-    {
-        float m = (j - i + 1)/2.0;
-        for (int run = 0;run <= 1;run++) {
-            QuadStoogeSort(A, i, j-(int)m);
-            QuadStoogeSort(A, i+(int)m, j);
-            QuadStoogeSort(A, i+(int)(m/2.0), j-(int)((m+1)/2.0));
-        }
-    }
-}
-
-void QuadStoogeSort(SortArray& A)
-{
-    QuadStoogeSort(A, 0, A.size()-1);
-}
-
-// ****************************************************************************
-// ** Bubble Scan Quicksort
-
-// by aphitorite + thatsOven
-
-void BubbleScanQuicksort(SortArray& A, int lo, int hi)
-{
-    while((hi - lo) > 16) {
-
-        // bubble select method
-        int sum = 0;
-        bool swapped = false;
-        for(int i = lo; i < hi - 1; i++) {
-            if (A[i] > A[i+1]){ A.swap(i, i+1); swapped = true; }
-            sum += A[i].get();
-        }
-
-        if(!swapped){ return; }
-        // partition
-        int mean = (int)(sum / float(hi - lo - 1));
-
-        volatile ssize_t i = lo, j = hi - 1;
-        A.watch(&i, 3);
-        A.watch(&j, 3);
-
-        while (i <= j)
-        {
-            while (A[i].get() <= mean && i <= j)
-                i++;
-
-            while (A[j].get() > mean && i <= j)
-                j--;
-
-            if (i <= j) { A.swap(i++,j--); }
-        }
-
-        A.unwatch_all();
-        BubbleScanQuicksort(A, (int)(j + 1), hi - 1);
-        hi = j + 1;
-    }
-
-    for (size_t i = lo; i < hi; ++i)
-    {
-        value_type key = A[i];
-
-        ssize_t j = i - 1;
-        while (j >= lo && A[j] > key)
-        {
-            A.swap(j, j+1);
-            j--;
-        }
-    }
-}
-
-void BubbleScanQuicksort(SortArray& A)
-{
-    BubbleScanQuicksort(A, 0, A.size());
-}
+// ******************************************************************************
+// ** Some More Sorts
+// ******************************************************************************
 
 // ****************************************************************************
 // ** Circle and Circloid
 
 // Circloid by yuji
 
-bool CircleSorting(SortArray& arr, int lo, int hi, bool mode) 
+bool CircleSorting(SortArray& A, int lo, int hi, bool mode) 
 { 
-    arr.mark(hi,3);
+    A.mark(hi,3);
 
     bool swapped = false;
     if (hi > lo) {
@@ -1865,148 +1827,103 @@ bool CircleSorting(SortArray& arr, int lo, int hi, bool mode)
 
         // Circloid version
         if(mode) {
-            swapped = CircleSorting(arr, lo, hi-m, true) || swapped;
-            swapped = CircleSorting(arr, lo+m, hi, true) || swapped;
+            swapped = CircleSorting(A, lo, hi-m, true) || swapped;
+            swapped = CircleSorting(A, lo+m, hi, true) || swapped;
         }
 
-        for(int off = 0;off < m;off++) {
-            if (arr[lo+off] > arr[hi-off]) { arr.swap(lo+off, hi-off); swapped = true; }
+        for(int off = 0;off < m; ++off) {
+            if (A[lo+off] > A[hi-off]) { A.swap(lo+off, hi-off); swapped = true; }
         }
 
         // Circle version
         if(!mode) {
-            swapped = CircleSorting(arr, lo, hi-m, false) || swapped;
-            swapped = CircleSorting(arr, lo+m, hi, false) || swapped;
+            swapped = CircleSorting(A, lo, hi-m, false) || swapped;
+            swapped = CircleSorting(A, lo+m, hi, false) || swapped;
         }
     }
 
-    arr.unmark(hi);
+    A.unmark(hi);
 
     return swapped;
 } 
 
 void CircleSort(SortArray& A)
 {
-    bool swapped = true;
-    while(swapped)
-    {
-        swapped = CircleSorting(A, 0, A.size() - 1, false);
-    }
+    while( CircleSorting(A, 0, A.size() - 1, false) );
 }
 
-void CircloidSort(SortArray& A)
+void CircloidSort(SortArray& A) // custom sort.
 {
-    bool swapped = true;
-    while(swapped)
-    {
-        swapped = CircleSorting(A, 0, A.size() - 1, true);
-    }
+    while( CircleSorting(A, 0, A.size() - 1, true) ); 
 }
 
-// ****************************************************************************
-// ** Kiyomi, Kinnow, Chinotto, and Mandarin Orange Sort
-
-// by yuji
-
-void GappedCocktailSort(SortArray& A, bool mode1, bool mode2)
-{
-    bool swapped = true;
-    int gap = 1;
-    while(swapped)
-    {
-        swapped = false;
-        int i = 0;
-        while((i + gap) < A.size())
-        {
-            if(A[i] > A[i + gap])
-            {
-                A.mark(i + gap);
-                A.mark(i);
-
-                if(mode1) {
-                    for(int rot = i; rot < i + gap; rot++)
-                    {
-                        A.swap(rot, rot + 1);
-                    }
-                } else {
-                    for(int rot = i + gap; rot > i; rot--)
-                    {
-                        A.swap(rot, rot - 1);
-                    }
-                }
-                A.unmark(i + gap);
-                A.unmark(i);
-
-                swapped = true;
-                gap += 1;
-            } else if (gap >= 2) {
-                gap -= 1;
-            }
-            i++;
-        }
-        while((i - gap) > 0)
-        {
-            if(A[i] < A[i - gap])
-            {
-                A.mark(i - gap);
-                A.mark(i);
-
-                if(mode2) {
-                    for(int rot = i - gap; rot < i; rot++)
-                    {
-                        A.swap(rot, rot + 1);
-                    }
-                } else {
-                    for(int rot = i; rot > i - gap; rot--)
-                    {
-                        A.swap(rot, rot - 1);
-                    }
-                }
-                A.unmark(i - gap);
-                A.unmark(i);
-                swapped = true;
-                gap += 1;
-            } else if (gap >= 2) {
-                gap -= 1;
-            }
-            i--;
-        }
-    }
-}
-
-void KiyomiSort(SortArray& A)
-{
-    GappedCocktailSort(A, false, true);
-
-    // failsafe
-    while(!CheckSorted(A)) {
-        GappedCocktailSort(A, false, true);
-    }
-}
-void KinnowSort(SortArray& A)
-{
-    GappedCocktailSort(A, true, true);
-}
-void ChinottoSort(SortArray& A)
-{
-    GappedCocktailSort(A, true, false);
-}
-void MandarinOrangeSort(SortArray& A)
-{
-    GappedCocktailSort(A, false, false);
-    
-    // failsafe
-    while(!CheckSorted(A)) {
-        GappedCocktailSort(A, false, false);
-    }
-}
-
-// ****************************************************************************
-// ** Recursive Pairwise Sort
+// ********************************************************************************
+// ** Pairwise Sorting Network as "Parallel" Sorting Network + Recursive version
 
 // implemented by Piotr, translation to C++ by me (u-ndefined)
 
-void pairwiserecursive(SortArray& array, int start, int end, int gap) {
+// modified to first record the recursively generated swap sequence, and then
+// sort it back into the order a parallel sorting network would perform the
+// swaps in
+
+namespace PairwiseSortingNetworkNS {
+
+struct swappair_type
+{
+    // swapped positions
+    unsigned int i,j;
+
+    // depth of recursions: sort / merge
+    unsigned int sort_depth, merge_depth;
+
+    swappair_type(unsigned int _i, unsigned int _j,
+                  unsigned int _sort_depth, unsigned int _merge_depth)
+        : i(_i), j(_j),
+          sort_depth(_sort_depth), merge_depth(_merge_depth)
+    { }
+
+    // order relation for sorting swaps
+    bool operator < (const swappair_type& b) const
+    {
+        if (sort_depth != b.sort_depth)
+            return sort_depth > b.sort_depth;
+
+        if (merge_depth != b.merge_depth)
+            return merge_depth > b.merge_depth;
+
+        return i < b.i;
+    }
+    
+
+};
+
+typedef std::vector<swappair_type> sequence_type;
+std::vector<swappair_type> sequence;
+
+void replay(SortArray& A)
+{
+    for (sequence_type::const_iterator si = sequence.begin();
+         si != sequence.end(); ++si)
+    {
+        if (A[si->i] > A[si->j])
+            A.swap(si->i, si->j);
+    }
+}
+
+static void compare(SortArray& A, unsigned int i, unsigned int j,
+                    unsigned int sort_depth, unsigned int merge_depth)
+{
+    // skip all swaps beyond end of array
+    ASSERT(i < j);
+    if (j >= A.size()) return;
+
+    sequence.push_back( swappair_type(i,j, sort_depth, merge_depth) );
+
+    //if (A[i] > A[j]) A.swap(i, j);
+}
+
+void pairwiserecursive(SortArray& A, int start, int end, int gap) {
+
      if (start == end - gap){
         return;
     }
@@ -2014,17 +1931,15 @@ void pairwiserecursive(SortArray& array, int start, int end, int gap) {
     int b = start + gap;
 
      while (b < end){
-        if(array[b - gap] > array[b]) {
-            array.swap(b - gap, b);
-        }
+        compare(A, b - gap, b, 0, 0);
         b += (2 * gap);
     }
     if (((end - start) / gap) % 2 == 0) {
-        pairwiserecursive(array, start, end, gap * 2);
-        pairwiserecursive(array, start + gap, end + gap, gap * 2);
+        pairwiserecursive(A, start, end, gap * 2);
+        pairwiserecursive(A, start + gap, end + gap, gap * 2);
     } else {
-        pairwiserecursive(array, start, end + gap, gap * 2);
-        pairwiserecursive(array, start + gap, end, gap * 2);
+        pairwiserecursive(A, start, end + gap, gap * 2);
+        pairwiserecursive(A, start + gap, end, gap * 2);
     }
     int a = 1;
     while (a < ((end - start) / gap)) {
@@ -2036,17 +1951,38 @@ void pairwiserecursive(SortArray& array, int start, int end, int gap) {
         while (c > 1) {
             c /= 2;
             if (b + (c * gap) < end){
-                if(array[b] > array[b + (c * gap)]) {
-                    array.swap(b, b + (c * gap));
-                }
+                compare(A, b, b + (c * gap), 0, 0);
             }
         }
         b += (2 * gap);
     }
 }
 
-void PairwiseSorting(SortArray& A) {
+void sortIt(SortArray& A)
+{
+    sequence.clear();
     pairwiserecursive(A, 0, A.size(), 1);
+    std::sort(sequence.begin(), sequence.end());
+    replay(A);
+    sequence.clear();
+}
+
+void sortRe(SortArray& A)
+{
+    sequence.clear();
+    pairwiserecursive(A, 0, A.size(), 1);
+    replay(A);
+    sequence.clear();
+}
+
+} // namespace PairwiseSortingNetworkNS
+
+void PairwiseSortingIt(SortArray& A) {
+    PairwiseSortingNetworkNS::sortIt(A);
+}
+
+void PairwiseSortingRe(SortArray& A) {
+    PairwiseSortingNetworkNS::sortRe(A);
 }
 
 // ****************************************************************************
@@ -2055,18 +1991,16 @@ void PairwiseSorting(SortArray& A) {
 void StableQuickSort(SortArray& A, size_t lo, size_t hi)
 {
     if((hi - lo) > 1) {
-
         size_t j = QuickSortSelectPivot(A,lo,hi);
-        volatile ssize_t loa_end = 0;
+        volatile ssize_t loa_end = lo;
         A.watch(&loa_end, 3);
 
-        std::vector<value_type> loa(0);
-        std::vector<value_type> hia(0);
-        int pivot = A[lo].get();
+        std::vector<value_type> loa;
+        std::vector<value_type> hia;
+        value_type pivot = A[j];
         for(size_t i = lo; i < hi; i++)
         {
-            ++g_compare_count; // count as comparison
-            if(A[i].get() < pivot) {
+            if(A[i] < pivot) {
                loa.push_back(A[i]);
                loa_end++;
             } else {
@@ -2075,22 +2009,22 @@ void StableQuickSort(SortArray& A, size_t lo, size_t hi)
         }
 
         int p = loa_end;
-        j = A.size();
-        while(loa.size() > 0)
+        j = 0;
+        while(j < loa.size())
         {
-            ASSERT(j > 0);
-            A.set(--j, loa[loa.size() - 1]);
-            loa.pop_back();
+            A.set(j + lo, loa[j]);
+            j++;
         }
 
         A.unwatch_all();
 
-        while(hia.size() > 0)
+        while((j - p + lo) < hia.size())
         {
-            ASSERT(j > 0);
-            A.set(--j, hia[hia.size() - 1]);
-            hia.pop_back();
+            A.set(j + lo, hia[j - p + lo]);
+            j++;
         }
+        hia.clear();
+        loa.clear();
 
         StableQuickSort(A, lo, p);
         StableQuickSort(A, p + 1, hi);
@@ -2100,88 +2034,6 @@ void StableQuickSort(SortArray& A, size_t lo, size_t hi)
 void StableQuickSort(SortArray& A)
 {
     StableQuickSort(A, 0, A.size());
-}
-
-// ****************************************************************************
-// ** Float Sort
-
-// by Lance, implemented by me (u-ndefined)
-
-void FloatSort(SortArray& A)
-{
-    bool swapped = true;
-    while(swapped)
-    {
-        swapped = false;
-        for(int cur = 0; cur < A.size() - 1; cur++)
-        {
-            A.mark(cur);
-            int i = cur - 1;
-            while(i > 0 && A[i-1] > A[i]) {
-                A.swap(i-1,i);
-                i--;
-                swapped = true;
-            }
-            while(i < A.size() - 1 && A[i] > A[i+1]) {
-                A.swap(i,i+1);
-                i++;
-                swapped = true;
-            }
-            A.unmark(cur);
-        }
-    }
-}
-
-// ****************************************************************************
-// ** Quicksort (LLL pointers)
-
-// by myself (u-ndefined)
-
-void QuickSortLLL(SortArray& A, size_t lo, size_t hi)
-{
-    if ((hi - lo) > 1) {
-        // pick pivots and move them to back
-        size_t p1 = QuickSortSelectPivot(A, lo, hi);
-        A.swap(p1, hi-1);
-    
-        size_t p2 = QuickSortSelectPivot(A, lo, hi - 1);
-        A.swap(p2, hi-2);
-
-        if(A[hi-2] > A[hi-1]) { A.swap(hi-1,hi-2); }
-
-        A.mark(hi-1);
-        A.mark(hi-2);
-
-        volatile ssize_t i = lo;
-        A.watch(&i, 3);
-        volatile ssize_t j = lo;
-        A.watch(&j, 3);
-
-        for (size_t k = lo; k < hi - 1; ++k)
-        {
-            if (A[k] <= A[hi-1]) {
-                A.swap(j, k);
-                if(A[j] <= A[hi-2]) {
-                    A.swap(i, j);
-                   ++i;
-                }
-                ++j;
-            }
-        }
-
-        A.swap(hi-1, j);
-        A.unmark_all();
-        A.unwatch_all();
-
-        QuickSortLLL(A, lo, i-1);
-        QuickSortLLL(A, i, j);
-        QuickSortLLL(A, j+1, hi);
-    }
-}
-
-void QuickSortLLL(SortArray& A)
-{
-    QuickSortLLL(A, 0, A.size());
 }
 
 // ********************************************************************************
@@ -2266,7 +2118,7 @@ void bosemerge(SortArray& A, unsigned int i,  /* value of first element in seque
     else if(x == 2 && y == 1)
     {
         compare(A, i, j, sort_depth, j - i);
-        compare(A, i + 1, j, sort_depth, j -(i + 1));
+        compare(A, i + 1, j, sort_depth, j - (i + 1));
     }
     else
     {
@@ -2427,6 +2279,9 @@ void LessBogoSort(SortArray& A)
     A.unwatch_all();
 }
 
+// ****************************************************************************
+// ** Flipped Min Heap Sort
+
 void FlippedMinHeapSort(SortArray& A)
 {
     size_t n = A.size(), i = n / 2;
@@ -2447,11 +2302,11 @@ void FlippedMinHeapSort(SortArray& A)
         
             // pop smallest element from heap: swap front to back, and sift
             // front A[0] down the heap
-            if (k == n-1) return;
             A.swap(k,n-1);
+            if (k == n) return;
 
             A.mark(k);
-            if ((k-1) > 0) A.unmark(k-1);
+            if ((k-1) >= 0) A.unmark(k-1);
             k++;
         }
 
@@ -2462,7 +2317,7 @@ void FlippedMinHeapSort(SortArray& A)
         // sift operation - push the value of A[i] down the heap
         while (child > k)
         {
-            if (((child - 1) > k) && (A[child - 1] < A[child])) {
+            if (((child - 1) >= k) && (A[child - 1] < A[child])) {
                 child--;
             }
             if (A[child] < A[parent]) {
@@ -2480,4 +2335,57 @@ void FlippedMinHeapSort(SortArray& A)
         A.mark(i, log(prevPowerOfTwo(n-i)) / log(2) + 4);
     }
 
+}
+
+// ****************************************************************************
+// *** Iterative Circle Sort
+
+// uses a queue to keep track of the ranges
+
+bool CircleSortingIt(SortArray& A, int lo, int hi)
+{
+    bool swapped = false;
+    std::queue<int> ranges;
+
+    // push ranges
+    ranges.push(lo);
+    ranges.push(hi);
+    while(!ranges.empty())
+    {
+        // get ranges
+        int qlo = ranges.front();
+        ranges.pop();
+        int qhi = ranges.front();
+        ranges.pop();
+
+        int m = (qhi - qlo + 1)/2;
+        for (int off = 0; off < m; ++off)
+        {
+            if (A[qlo+off] > A[qhi-off]) { A.swap(qlo+off, qhi-off); swapped = true; }
+        }
+
+        if(qhi - qlo >= 2)
+        {
+            ranges.push(qlo);
+            ranges.push(qhi-m);
+
+            ranges.push(qlo+m);
+            ranges.push(qhi);
+        }
+    }
+    return swapped;
+}
+
+void IterativeCircleSort(SortArray& A) {
+    while( CircleSortingIt(A, 0, A.size( ) - 1) );
+}
+
+// ****************************************************************************
+// *** Balanced Sorting Network
+
+void BalancedSortingNetwork(SortArray& A) {
+    int k = 0;
+    for (int num = ceil(log(A.size() - 1) / log(2.0)); k < num; ++k) {
+        CircleSortingIt(A, 0, A.size( ) - 1);
+    }
 }

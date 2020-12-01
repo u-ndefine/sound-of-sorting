@@ -3,8 +3,8 @@
 bin_PROGRAMS = sound-of-sorting
 
 COMMON = SortArray.cpp SortArray.h \
-	SortSound.cpp \
-	SortAlgo.cpp SortAlgo.h \
+	SortSound.cpp SortAlgo.cpp\
+	SortAlgo.h SortAlgo2.cpp \
 	algorithms/timsort.cpp \
 	algorithms/wikisort.cpp
 

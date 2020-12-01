@@ -100,29 +100,84 @@ void BozoSort(class SortArray& a);
 void StoogeSort(class SortArray& a);
 
 void CycleSort(class SortArray& a);
+void SlowSort(class SortArray& a);
 
 // ****************
 
-void QuadStoogeSort(class SortArray& a);
-void SlowSort(class SortArray& a);
-void YSlowSort(class SortArray& a);
-void BubbleScanQuicksort(class SortArray& a);
 void CircleSort(class SortArray& a);
+void IterativeCircleSort(class SortArray& a);
 void CircloidSort(class SortArray& a);
+
 void KiyomiSort(class SortArray& a);
 void ChinottoSort(class SortArray& a);
 void KinnowSort(class SortArray& a);
 void MandarinOrangeSort(class SortArray& a);
-void PairwiseSorting(class SortArray& a);
+
+void BubbleScanQuicksort(class SortArray& a);
 void StableQuickSort(class SortArray& a);
-void FloatSort(class SortArray& a);
-void StableSelectionSort(class SortArray& a);
+void OptiStableQuickSort(class SortArray& a);
 void QuickSortLLL(class SortArray& a);
+void IterativeQuickSortLL(class SortArray& a);
+void IterativeQuickSortLR(class SortArray& a);
+void IterativeLinkedQuickSortLL(class SortArray& a);
+void IterativeLinkedQuickSortLR(class SortArray& a);
+
+void ModuloSort(class SortArray& a);
+void RotateRadixLSD(class SortArray& a);
+void RotateRadixMSD(class SortArray& a);
+void ProxmapSort(class SortArray& a);
+
+void FloatSort(class SortArray& a);
+void OddEvenBase3(class SortArray& a);
+
+void StableSelectionSort(class SortArray& a);
+void ShoveSort(class SortArray& a);
+
+void PairwiseSortingIt(class SortArray& a);
+void PairwiseSortingRe(class SortArray& a);
 void BoseNelsonSortingIt(class SortArray& a);
 void BoseNelsonSortingRe(class SortArray& a);
+void BalancedSortingNetwork(class SortArray& a);
+
+void IterativeStoogeSort(class SortArray& a);
+void QuadStoogeSort(class SortArray& a);
+void StableStoogeSort(class SortArray& a);
+void HyperStoogeSort(class SortArray& a);
+void YSlowSort(class SortArray& a);
 void GravitySort(class SortArray& a);
 void LessBogoSort(class SortArray& a);
+void AwkwardSort(class SortArray& a);
+
+void GrateSort(class SortArray& a);
+void ReverseGrateSort(class SortArray& a);
+void CocktailGrateSort(class SortArray& a);
+void RoomSort(class SortArray& a);
+void SlopeSort(class SortArray& a);
+void BalanceSort(class SortArray& a);
+void WiggleSort(class SortArray& a);
+void BogoBogoBogoSort(class SortArray& a);
+void CheckerboardHeapSort(class SortArray& a);
+void TriangularHeapSort(class SortArray& a);
+void SlideSort(class SortArray& a);
+
+void JumpDownSort(class SortArray& a);
+void CocktailShellSort(class SortArray& a);
+void OddEvenBogoSort(class SortArray& a);
+
+void PancakeSort(class SortArray& a);
+void QuasiPancakeSort(class SortArray& a);
+void BinaryQuasiPancakeSort(class SortArray& a);
+
+void BingoSort(class SortArray& a);
 void FlippedMinHeapSort(class SortArray& a);
+void ReverseInsertionSort(class SortArray& a);
+void OddEvenTransMergeSort(class SortArray& a);
+
+// ****************
+
+void InsertionSortExtra(class SortArray& a, int lo, int hi);
+ssize_t QuickSortSelectPivot(class SortArray& a, ssize_t lo, ssize_t hi);
+bool CheckSorted(class SortArray& a);
 
 // ****************************************************************************
 // *** Iterator Adapter

@@ -108,8 +108,8 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
 am__dirstamp = $(am__leading_dot)dirstamp
 am__objects_1 = SortArray.$(OBJEXT) SortSound.$(OBJEXT) \
-	SortAlgo.$(OBJEXT) algorithms/timsort.$(OBJEXT) \
-	algorithms/wikisort.$(OBJEXT)
+	SortAlgo.$(OBJEXT) SortAlgo2.$(OBJEXT) \
+	algorithms/timsort.$(OBJEXT) algorithms/wikisort.$(OBJEXT)
 am_sorting_test_OBJECTS = SortTest.$(OBJEXT) $(am__objects_1)
 sorting_test_OBJECTS = $(am_sorting_test_OBJECTS)
 sorting_test_LDADD = $(LDADD)
@@ -135,7 +135,8 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/acscripts/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/SortAlgo.Po ./$(DEPDIR)/SortArray.Po \
+am__depfiles_remade = ./$(DEPDIR)/SortAlgo.Po ./$(DEPDIR)/SortAlgo2.Po \
+	./$(DEPDIR)/SortArray.Po \
 	./$(DEPDIR)/SortSound.Po ./$(DEPDIR)/SortTest.Po \
 	./$(DEPDIR)/WMain.Po ./$(DEPDIR)/WSortView.Po \
 	./$(DEPDIR)/wxClickText.Po algorithms/$(DEPDIR)/timsort.Po \
@@ -524,8 +525,8 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 COMMON = SortArray.cpp SortArray.h \
-	SortSound.cpp \
-	SortAlgo.cpp SortAlgo.h \
+	SortSound.cpp SortAlgo.cpp \
+	SortAlgo2.cpp SortAlgo.h \
 	algorithms/timsort.cpp \
 	algorithms/wikisort.cpp
 
@@ -663,6 +664,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SortAlgo.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SortAlgo2.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SortArray.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SortSound.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SortTest.Po@am__quote@ # am--include-marker
@@ -996,6 +998,7 @@ clean-am: clean-binPROGRAMS clean-generic clean-noinstPROGRAMS \
 
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/SortAlgo.Po
+	-rm -f ./$(DEPDIR)/SortAlgo2.Po
 	-rm -f ./$(DEPDIR)/SortArray.Po
 	-rm -f ./$(DEPDIR)/SortSound.Po
 	-rm -f ./$(DEPDIR)/SortTest.Po
@@ -1051,7 +1054,8 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/SortAlgo.Po
+	-rm -f ./$(DEPDIR)/SortAlgo.Po
+	-rm -f ./$(DEPDIR)/SortAlgo2.Po
 	-rm -f ./$(DEPDIR)/SortArray.Po
 	-rm -f ./$(DEPDIR)/SortSound.Po
 	-rm -f ./$(DEPDIR)/SortTest.Po
