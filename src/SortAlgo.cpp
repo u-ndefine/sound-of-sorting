@@ -125,6 +125,8 @@ const struct AlgoEntry g_algolist[] =
       wxEmptyString },
     { _("Recursive Pairwise Sorting Network"), &PairwiseSortingRe, UINT_MAX, inversion_count_instrumented,
       wxEmptyString },
+    { _("Iterative Pairwise Sorting Network"), &PairwiseSortingIt, UINT_MAX, inversion_count_instrumented,
+      wxEmptyString },
     { _("Recursive Bose-Nelson Sorting Network"), &BoseNelsonSortingRe, UINT_MAX, inversion_count_instrumented,
       wxEmptyString },
     { _("Iterative Bose-Nelson Sorting Network"), &BoseNelsonSortingIt, UINT_MAX, inversion_count_instrumented,
@@ -145,7 +147,7 @@ const struct AlgoEntry g_algolist[] =
       wxEmptyString },
     { _("Less Bogo Sort"), &LessBogoSort, 20, UINT_MAX,
       wxEmptyString },
-    { _("Reverse Insertion Sort"), &ReverseInsertionSort, UINT_MAX, UINT_MAX,
+    { _("Reverse Insertion Sort"), &ReverseInsertionSort, UINT_MAX, 199,
       wxEmptyString },
     { _("Bingo Sort"), &BingoSort, UINT_MAX, UINT_MAX,
       _("A variant of selection sort for equal items.") },
@@ -1922,7 +1924,8 @@ static void compare(SortArray& A, unsigned int i, unsigned int j,
     //if (A[i] > A[j]) A.swap(i, j);
 }
 
-void pairwiserecursive(SortArray& A, int start, int end, int gap) {
+void pairwiserecursive(SortArray& A, int start, int end, int gap,
+    unsigned int sort_depth) {
 
      if (start == end - gap){
         return;
@@ -1931,16 +1934,17 @@ void pairwiserecursive(SortArray& A, int start, int end, int gap) {
     int b = start + gap;
 
      while (b < end){
-        compare(A, b - gap, b, 0, 0);
+        compare(A, b - gap, b, -sort_depth-1, A.size());
         b += (2 * gap);
     }
     if (((end - start) / gap) % 2 == 0) {
-        pairwiserecursive(A, start, end, gap * 2);
-        pairwiserecursive(A, start + gap, end + gap, gap * 2);
+        pairwiserecursive(A, start, end, gap * 2, sort_depth+1);
+        pairwiserecursive(A, start + gap, end + gap, gap * 2, sort_depth+1);
     } else {
-        pairwiserecursive(A, start, end + gap, gap * 2);
-        pairwiserecursive(A, start + gap, end, gap * 2);
+        pairwiserecursive(A, start, end + gap, gap * 2, sort_depth+1);
+        pairwiserecursive(A, start + gap, end, gap * 2, sort_depth+1);
     }
+
     int a = 1;
     while (a < ((end - start) / gap)) {
         a = (a * 2) + 1;
@@ -1951,7 +1955,7 @@ void pairwiserecursive(SortArray& A, int start, int end, int gap) {
         while (c > 1) {
             c /= 2;
             if (b + (c * gap) < end){
-                compare(A, b, b + (c * gap), 0, 0);
+                compare(A, b, b + (c * gap), sort_depth, c * gap);
             }
         }
         b += (2 * gap);
@@ -1961,7 +1965,7 @@ void pairwiserecursive(SortArray& A, int start, int end, int gap) {
 void sortIt(SortArray& A)
 {
     sequence.clear();
-    pairwiserecursive(A, 0, A.size(), 1);
+    pairwiserecursive(A, 0, A.size(), 1, 0);
     std::sort(sequence.begin(), sequence.end());
     replay(A);
     sequence.clear();
@@ -1970,7 +1974,7 @@ void sortIt(SortArray& A)
 void sortRe(SortArray& A)
 {
     sequence.clear();
-    pairwiserecursive(A, 0, A.size(), 1);
+    pairwiserecursive(A, 0, A.size(), 1, 0);
     replay(A);
     sequence.clear();
 }
@@ -2389,3 +2393,66 @@ void BalancedSortingNetwork(SortArray& A) {
         CircleSortingIt(A, 0, A.size( ) - 1);
     }
 }
+
+
+// ****************************************************************************
+// *** Proxmap Sort
+
+void ProxmapSort(SortArray& A)
+{
+    std::vector<size_t> hits(A.size());
+    std::vector<size_t> maps(A.size());
+    std::vector<int> A2(A.size(), -1);
+
+    // compute the array's minimum and maximum
+    value_type min = A[0], max = A[0];
+
+    for(int i = 1; i < A.size(); ++i)
+    {
+        if(A[i] < min)
+        {
+            min = A[i];
+        } else if(A[i] > max)
+        {
+            max = A[i];
+        }
+    }
+
+    int imin = min.get(), imax = max.get();
+
+    // compute hits and key maps
+    for(int i = 0; i < A.size(); ++i)
+    {
+        maps[i] = int(float(A[i].get() - imin) / float(imax - imin) * float(A.size() - 1));
+        ++hits[maps[i]];
+    }
+
+    // prefix sum - using the vector hits[] to compute the proxmaps
+    hits[A.size() - 1] = A.size() - hits[A.size() - 1];
+
+    for(int i = A.size() - 1; i > 0; --i)
+    {
+        hits[i - 1] = hits[i] - hits[i - 1];
+    }
+
+    // insert A[i] to A2 in correct position
+    int iIdx, iLo;
+    for(int i = 0; i < A.size(); ++i)
+    {
+        iIdx = hits[maps[i]];
+        iLo = iIdx;
+        int cur = A[i].get();
+        while(A2[iIdx] != -1) iIdx++;
+        while(iIdx > iLo && cur < A2[iIdx - 1])
+        {
+            A.touch(iIdx, 1, 1);
+            A2[iIdx] = A2[iIdx - 1];
+            iIdx--;
+        }
+        A.touch(iIdx, 1, 1);
+        A2[iIdx] = cur;
+    }
+    for(int i = 0; i < A.size(); ++i) A.set(i, (ArrayItem)A2[i]); 
+}
+
+// ****************************************************************************
