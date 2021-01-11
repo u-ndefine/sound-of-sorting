@@ -785,7 +785,7 @@ void BalanceSort(SortArray& A)
 // ****************************************************************************
 // *** Triangular Heap Sort
 
-// sort idea by EilrahcF
+// by EilrahcF
 
 void TriangularHeapSort(SortArray& A)
 {
@@ -804,9 +804,9 @@ void TriangularHeapSort(SortArray& A)
 
     for(size_t j = n - 1; j >= i; --j) { //mark different colors of triangular heap
         if((smT + szT) >= j) {
-            A.mark(j, 4+(szT % 12));
+            A.mark(j, 4+((szT + 11) % 12));
         } else {
-            A.mark(j, 4+((szT + 1) % 12));
+            A.mark(j, 4+(szT % 12));
         }
     }
 
@@ -854,7 +854,7 @@ void TriangularHeapSort(SortArray& A)
         }
 
         // mark different colors of triangular heap
-        A.mark(i, 4+(szT % 12));
+        A.mark(i, 4+((szT + 11) % 12));
     }
 }
 
@@ -1478,6 +1478,7 @@ void AwkwardSort(SortArray& A, int lo, int hi)
 
         AwkwardSort(A, lo, m);
         AwkwardSort(A, m, hi);
+        
         // compare the halves
         for(int i = lo; (i + l/2) < hi; ++i)
         {
@@ -1668,63 +1669,228 @@ void OddEvenTransMergeSort(SortArray& A)
 }
 
 // ****************************************************************************
-// *** Proxmap Sort
+// *** Binary Sort
 
-void ProxmapSort(SortArray& A)
+// by EilrahcF
+
+void BinarySort(SortArray& A, int hi)
 {
-    std::vector<size_t> hits(A.size());
-    std::vector<size_t> maps(A.size());
-    std::vector<int> A2(A.size(), -1);
+    if(hi < 1) return;
 
-    // compute the array's minimum and maximum
-    value_type min = A[0], max = A[0];
+    BinarySort(A, hi-1);
+    if(A[hi - 1] > A[hi]) A.swap(hi - 1, hi);
+    A.mark(hi);
+    BinarySort(A, hi-1);
+    A.unmark(hi);
+}
 
-    for(int i = 1; i < A.size(); ++i)
-    {
-        if(A[i] < min)
-        {
-            min = A[i];
-        } else if(A[i] > max)
-        {
-            max = A[i];
-        }
-    }
-
-    int imin = min.get(), imax = max.get();
-
-    // compute hits and key maps
-    for(int i = 0; i < A.size(); ++i)
-    {
-        maps[i] = int(float(A[i].get() - imin) / float(imax - imin) * float(A.size() - 1));
-        ++hits[maps[i]];
-    }
-
-    // prefix sum - using the vector hits[] to compute the proxmaps
-    hits[A.size() - 1] = A.size() - hits[A.size() - 1];
-
-    for(int i = A.size() - 1; i > 0; --i)
-    {
-        hits[i - 1] = hits[i] - hits[i - 1];
-    }
-
-    // insert A[i] to A2 in correct position
-    int iIdx, iLo;
-    for(int i = 0; i < A.size(); ++i)
-    {
-        iIdx = hits[maps[i]];
-        iLo = iIdx;
-        int cur = A[i].get();
-        while(A2[iIdx] != -1) iIdx++;
-        while(iIdx > iLo && cur < A2[iIdx - 1])
-        {
-            A.touch(iIdx, 1, 1);
-            A2[iIdx] = A2[iIdx - 1];
-            iIdx--;
-        }
-        A.touch(iIdx, 1, 1);
-        A2[iIdx] = cur;
-    }
-    for(int i = 0; i < A.size(); ++i) A.set(i, (ArrayItem)A2[i]); 
+void BinarySort(SortArray& A)
+{
+    BinarySort(A, A.size()-1);
 }
 
 // ****************************************************************************
+// *** Ternary Slow Sort
+
+// by fungamer2
+
+void TernarySlowSort(SortArray& A, int i, int j)
+{
+    if(j - i == 1) {
+        if(A[i] > A[j]) A.swap(i, j);
+    } else if (j - i > 1) {
+        int m1 = i + (j - i) / 3;
+        int m2 = i + (j - i) * 2 / 3;
+
+        TernarySlowSort(A, i, m1);
+        TernarySlowSort(A, m1+1, m2);
+        TernarySlowSort(A, m2+1, j);
+
+        if(A[m1] > A[m2]) A.swap(m1, m2);
+        if(A[m2] > A[j]) A.swap(m2, j);
+        if(A[m1] > A[m2]) A.swap(m1, m2);
+
+        A.mark(j);
+        TernarySlowSort(A, i, j-1);
+        A.unmark(j);
+    }
+}
+
+void TernarySlowSort(SortArray& A)
+{
+    TernarySlowSort(A, 0, A.size()-1);
+}
+
+// ****************************************************************************
+// *** Snuffle Sort
+
+// by _fluffyy
+
+void SnuffleSort(SortArray& A, int i, int j)
+{
+    if(A[i] > A[j]) A.swap(i, j);
+
+    if (j - i > 1) {
+        int m = (i + j) / 2;
+
+        A.mark(j, 3);
+        for(int runs = 0; runs < (j-i+1)/3; ++runs) {
+            SnuffleSort(A, i, m);
+            SnuffleSort(A, m, j);
+        }
+        A.unmark(j);
+    }
+}
+
+void SnuffleSort(SortArray& A)
+{
+    SnuffleSort(A, 0, A.size()-1);
+}
+
+// ****************************************************************************
+// *** Spaghetti Sort
+
+void SpaghettiSort(SortArray& A)
+{
+    ssize_t max = 0;
+    size_t count = A.size() - 1;
+    std::vector<value_type> aux(A.size());
+    std::vector<size_t> nums(A.size());
+    for (size_t i = 0; i < A.size(); i++)
+    {
+        if((nums[i] = A[i].get()) > max)
+        {
+            max = nums[i];
+        }
+    }
+    
+
+    for (size_t j = max; j > 0 && count >= 0; j--)
+    {
+        for (size_t i = 0; i < A.size(); i++)
+        {
+            if(nums[i] == j)
+            {
+                aux[count--] = A[i]; A[i].get();
+                A.set(i, (ArrayItem)0);
+            }
+        }
+    }
+    
+    for (ssize_t i = A.size() - 1; i >= 0; i--)
+    {
+        A.set(i, aux[i]);
+    }
+}
+
+// ****************************************************************************
+// *** Smarter Bubble Sort
+
+// by Anonymous0726
+
+void SmarterBubbleSort(SortArray& A)
+{
+    size_t hi = A.size()-1, mov = 0;
+    while(hi > 0) {
+        A.mark(hi);
+
+        for(size_t j = 0; j < hi; j++) {
+            if(A[j] > A[j + 1]){
+                A.swap(j, j+1);
+                mov = j;
+            }
+        }
+        A.unmark(hi);
+
+        hi = mov;
+    }
+}
+
+// ****************************************************************************
+// *** Radix LSD Stooge Sort
+
+// by thatsOven
+
+void RadixStoogeSort(SortArray& A, int i, int j, const unsigned int RADIX, unsigned int p)
+{
+    size_t base = pow(RADIX, p);
+
+    if(j - i <= 1)
+    {
+        if(A[i].get() / base % RADIX > A[j].get() / base % RADIX) A.swap(i,j);
+        // g_compare_count++;
+    } 
+    if (j - i >= 2)
+    {
+        int t = (j - i + 1) / 3;
+
+        A.mark(i, 3);
+        A.mark(j, 3);
+
+        RadixStoogeSort(A, i, j-t, RADIX, p);
+        RadixStoogeSort(A, i+t, j, RADIX, p);
+        RadixStoogeSort(A, i, j-t, RADIX, p);
+
+        A.unmark(i);
+        A.unmark(j);
+    }
+}
+
+void RadixLSDStoogeSort(SortArray& A)
+{
+    // radix and base calculations
+    const unsigned int RADIX = 4;
+
+    unsigned int pmax = ceil( log(A.array_max()+1) / log(RADIX) );
+
+    for (unsigned int p = 0; p < pmax; ++p) RadixStoogeSort(A, 0, A.size()-1, RADIX, p);
+}
+
+// ****************************************************************************
+// *** Radix MSD Stooge Sort
+
+// by u-ndefined (me)
+
+void RadixMSDStoogeSort(SortArray& A, int i, int j, int p)
+{
+    // radix and base calculations
+    const unsigned int RADIX = 4;
+
+    unsigned int pmax = ceil( log(A.array_max()+1) / log(RADIX) );
+
+    size_t base = pow(RADIX, pmax-p-1);
+    if(p < pmax) {
+        RadixStoogeSort(A, i, j, RADIX, pmax-p-1);
+
+        // binary search to split the buckets
+        std::vector<size_t> bkt(RADIX, 0);
+
+        for(size_t ii = 0; ii < bkt.size(); ++ii)
+        {
+            int lo = i, hi = j+1;
+            while (lo < hi) {
+                int mid = (lo + hi) / 2;
+                if (ii <= A[mid].get() / base % RADIX)
+                    hi = mid;
+                else
+                    lo = mid + 1;
+            }
+            bkt[ii] = lo;
+         
+            if(lo < A.size()) A.mark(lo);
+        }
+        A.unmark_all();
+
+        // recurse on buckets
+        for(size_t ii = 0; ii < bkt.size()-1; ++ii)
+        {
+            if(bkt[ii+1]-2 > bkt[ii]) RadixMSDStoogeSort(A, bkt[ii], bkt[ii+1]-1, p+1);
+        }
+        if(j-1 > bkt[bkt.size()-1]) RadixMSDStoogeSort(A, bkt[bkt.size()-1], j, p+1);
+    }
+}
+
+void RadixMSDStoogeSort(SortArray& A)
+{
+    RadixMSDStoogeSort(A, 0, A.size()-1, 0);
+}

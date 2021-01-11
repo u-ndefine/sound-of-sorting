@@ -61,7 +61,7 @@ void MergeSortIterative(class SortArray& a);
 
 wxArrayString QuickSortPivotText();
 
-enum QuickSortPivotType { PIVOT_FIRST, PIVOT_LAST, PIVOT_MID, PIVOT_RANDOM, PIVOT_MEDIAN3 };
+enum QuickSortPivotType { PIVOT_FIRST, PIVOT_LAST, PIVOT_MID, PIVOT_RANDOM, PIVOT_MEDIAN3, PIVOT_MOM};
 extern QuickSortPivotType g_quicksort_pivot;
 
 void QuickSortLR(class SortArray& a);
@@ -122,6 +122,8 @@ void IterativeQuickSortLR(class SortArray& a);
 void IterativeLinkedQuickSortLL(class SortArray& a);
 void IterativeLinkedQuickSortLR(class SortArray& a);
 
+void SmarterBubbleSort(class SortArray& a);
+
 void ModuloSort(class SortArray& a);
 void RotateRadixLSD(class SortArray& a);
 void RotateRadixMSD(class SortArray& a);
@@ -143,10 +145,13 @@ void IterativeStoogeSort(class SortArray& a);
 void QuadStoogeSort(class SortArray& a);
 void StableStoogeSort(class SortArray& a);
 void HyperStoogeSort(class SortArray& a);
+void RadixLSDStoogeSort(class SortArray& a);
+void RadixMSDStoogeSort(class SortArray& a);
 void YSlowSort(class SortArray& a);
 void GravitySort(class SortArray& a);
 void LessBogoSort(class SortArray& a);
 void AwkwardSort(class SortArray& a);
+void SnuffleSort(class SortArray& a);
 
 void GrateSort(class SortArray& a);
 void ReverseGrateSort(class SortArray& a);
@@ -156,22 +161,28 @@ void SlopeSort(class SortArray& a);
 void BalanceSort(class SortArray& a);
 void WiggleSort(class SortArray& a);
 void BogoBogoBogoSort(class SortArray& a);
-void CheckerboardHeapSort(class SortArray& a);
-void TriangularHeapSort(class SortArray& a);
 void SlideSort(class SortArray& a);
+void BinarySort(class SortArray& a);
 
 void JumpDownSort(class SortArray& a);
 void CocktailShellSort(class SortArray& a);
+void TernarySlowSort(class SortArray& a);
 void OddEvenBogoSort(class SortArray& a);
 
 void PancakeSort(class SortArray& a);
 void QuasiPancakeSort(class SortArray& a);
 void BinaryQuasiPancakeSort(class SortArray& a);
 
+// void ImprovedWeaveMergeSort(class SortArray& a);
 void BingoSort(class SortArray& a);
-void FlippedMinHeapSort(class SortArray& a);
 void ReverseInsertionSort(class SortArray& a);
 void OddEvenTransMergeSort(class SortArray& a);
+void SpaghettiSort(class SortArray& a);
+
+void UnbalancedTreeSort(class SortArray& a);
+void FlippedMinHeapSort(class SortArray& a);
+void CheckerboardHeapSort(class SortArray& a);
+void TriangularHeapSort(class SortArray& a);
 
 // ****************
 

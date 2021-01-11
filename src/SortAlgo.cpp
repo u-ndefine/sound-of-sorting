@@ -82,7 +82,7 @@ const struct AlgoEntry g_algolist[] =
     { _("Comb Sort"), &CombSort, UINT_MAX, UINT_MAX,
       wxEmptyString },
     { _("Shell Sort"), &ShellSort, UINT_MAX, 1024,
-      "" },
+      _("Uses Robert Sedgewick gaps.") },
     { _("Heap Sort"), &HeapSort, UINT_MAX, UINT_MAX,
       wxEmptyString },
     { _("Smooth Sort"), &SmoothSort, UINT_MAX, 1024,
@@ -131,6 +131,8 @@ const struct AlgoEntry g_algolist[] =
       wxEmptyString },
     { _("Iterative Bose-Nelson Sorting Network"), &BoseNelsonSortingIt, UINT_MAX, inversion_count_instrumented,
       wxEmptyString },
+    { _("Unbalanced Tree Sort"), &UnbalancedTreeSort, UINT_MAX, inversion_count_instrumented,
+      wxEmptyString },
     { _("Stable Selection Sort"), &StableSelectionSort, UINT_MAX, UINT_MAX,
       wxEmptyString },
     { _("Stable Quick Sort"), &StableQuickSort, UINT_MAX, UINT_MAX,
@@ -153,7 +155,11 @@ const struct AlgoEntry g_algolist[] =
       _("A variant of selection sort for equal items.") },
     { _("Proxmap Sort"), &ProxmapSort, UINT_MAX, inversion_count_instrumented,
       wxEmptyString },
+    { _("Spaghetti Sort"), &SpaghettiSort, UINT_MAX, inversion_count_instrumented,
+      wxEmptyString },
     { _("Flipped Min Heap Sort"), &FlippedMinHeapSort, UINT_MAX, UINT_MAX,
+      wxEmptyString },
+    { wxEmptyString, &PairwiseSortingIt, UINT_MAX, inversion_count_instrumented,
       wxEmptyString },
     { _("Circle Sort"), &CircleSort, UINT_MAX, UINT_MAX,
       _("Custom sort.") },
@@ -169,10 +175,14 @@ const struct AlgoEntry g_algolist[] =
       _("Custom sort.") },
     { _("Shove Sort"), &ShoveSort, 256, UINT_MAX,
       _("Custom sort.") },
+//  { _("Improved Weave Merge Sort"), &ImprovedWeaveMergeSort, UINT_MAX, inversion_count_instrumented,
+//    _("Custom sort.") },
     { _("Iterative Linked Quick Sort (LL ptrs)"), &IterativeLinkedQuickSortLL, UINT_MAX, UINT_MAX,
       _("Custom sort. Uses a queue to keep track of the split ranges.") },
     { _("Iterative Linked Quick Sort (LR ptrs)"), &IterativeLinkedQuickSortLR, UINT_MAX, UINT_MAX,
       _("Custom sort. Uses a queue to keep track of the split ranges.") },
+    { _("More Optimized Bubble Sort"), &SmarterBubbleSort, UINT_MAX, UINT_MAX,
+      _("Custom sort by Anonymous0726.") },
     { _("Slope Sort"), &SlopeSort, UINT_MAX, UINT_MAX,
       _("Custom sort by EilrahcF.") },
     { _("Slide Sort"), &SlideSort, UINT_MAX, UINT_MAX,
@@ -189,9 +199,11 @@ const struct AlgoEntry g_algolist[] =
       _("Custom sort by EilrahcF.") },
     { _("Linked Triangular Heap Sort"), &TriangularHeapSort, UINT_MAX, UINT_MAX,
       _("Custom sort by EilrahcF.") },
+    { _("Checkerboard Heap Sort"), &CheckerboardHeapSort, UINT_MAX, UINT_MAX,
+      _("Custom sort by EilrahcF.") },
     { _("Hyper Stooge Sort"), &HyperStoogeSort, 8, inversion_count_instrumented,
       _("Custom sort by EilrahcF.") },
-    { _("Checkerboard Heap Sort"), &CheckerboardHeapSort, UINT_MAX, UINT_MAX,
+    { _("Binary Sort"), &BinarySort, 8, inversion_count_instrumented,
       _("Custom sort by EilrahcF.") },
     { _("Bogo Bogo Bogo Sort"), &BogoBogoBogoSort, 10, UINT_MAX,
       _("Custom sort by EilrahcF. This version uses Bogo instead of Bogobogo instead.") },
@@ -211,12 +223,16 @@ const struct AlgoEntry g_algolist[] =
       _("Custom sort by aphitorite.") },
     { _("Bubble Scan Quicksort"), &BubbleScanQuicksort, UINT_MAX, UINT_MAX,
       _("Custom sort by aphitorite and thatsOven.") },
+    { _("Radix LSD Stooge Sort"), &RadixLSDStoogeSort, 256, inversion_count_instrumented,
+      _("Custom sort by thatsOven.") },
     { _("Modulo Sort"), &ModuloSort, 512, UINT_MAX,
       _("Custom sort by McDude_73.") },
     { _("Jump Down Sort"), &JumpDownSort, UINT_MAX, UINT_MAX,
       _("Custom sort by fungamer2.") },
     { _("Cocktail Shell Sort"), &CocktailShellSort, UINT_MAX, 1024,
       _("Custom sort by fungamer2. Each gap decreases by a factor of sqrt(n).") },
+    { _("Ternary Slow Sort"), &TernarySlowSort, 128, inversion_count_instrumented,
+      _("Custom sort by fungamer2.") },
     { _("Odd Even Bogo Sort"), &OddEvenBogoSort, 256, UINT_MAX,
       _("Custom sort by fungamer2.") },
     { _("Circloid Sort"), &CircloidSort, UINT_MAX, UINT_MAX,
@@ -235,7 +251,11 @@ const struct AlgoEntry g_algolist[] =
       _("Custom sort by Lance.") },
     { _("Odd Even Sort (Base 3)"), &OddEvenBase3, UINT_MAX, UINT_MAX,
       _("Custom sort by Lance.") },
+    { _("Snuffle Sort"), &SnuffleSort, 32, inversion_count_instrumented,
+      _("Custom sort by _fluffyy.") },
     { _("Quick Sort (LLL pointers)"), &QuickSortLLL, UINT_MAX, UINT_MAX,
+      _("Custom sort by u-ndefined.") },
+    { _("Radix MSD Stooge Sort"), &RadixMSDStoogeSort, 256, inversion_count_instrumented,
       _("Custom sort by u-ndefined.") }
 };
 
@@ -326,6 +346,27 @@ ssize_t QuickSortSelectPivot(SortArray& A, ssize_t lo, ssize_t hi)
             : (A[mid] > A[hi-1] ? mid : (A[lo] < A[hi-1] ? lo : hi-1));
     }
 
+    if (g_quicksort_pivot == PIVOT_MOM)
+    {
+        volatile ssize_t j = hi;
+        ssize_t k; 
+        A.watch(&j);
+
+        while(j > lo + 1)
+        {
+            k = j;
+            j = lo;
+            for(ssize_t i = lo; i < k; i += 5)
+            {
+                InsertionSortExtra(A, i, std::min(i+5, k));
+                A.swap(j++, (i + std::min(i+5, k)) / 2);
+            }
+        }
+        A.unwatch_all();
+        
+        return lo;
+    }
+
     return lo;
 }
 
@@ -338,6 +379,7 @@ wxArrayString QuickSortPivotText()
     sl.Add( _("Middle Item") );
     sl.Add( _("Random Item") );
     sl.Add( _("Median of Three") );
+    sl.Add( _("Median of Medians") );
 
     return sl;
 }
@@ -820,9 +862,10 @@ void QuickSortDualPivot(class SortArray& a)
 
 void BubbleSort(SortArray& A)
 {
-    bool swapped = false;
+    bool swapped;
     for (size_t i = 0; i < A.size()-1; ++i)
     {
+        swapped = false;
         for (size_t j = 0; j < A.size()-1 - i; ++j)
         {
             if (A[j] > A[j + 1])
@@ -836,42 +879,43 @@ void BubbleSort(SortArray& A)
 }
 
 // ****************************************************************************
-// *** Cocktail Shaker Sort (Optimized), fixed
+// *** Cocktail Shaker Sort (More optimized)
 
 // from http://de.wikibooks.org/wiki/Algorithmen_und_Datenstrukturen_in_C/_Shakersort
 
 void CocktailShakerSort(SortArray& A)
 {
     size_t lo = 0, hi = A.size()-1, mov = lo;
-    bool swapped = false;
 
     while (lo < hi)
     {
-        for (size_t i = hi; i > lo; --i)
-        {
-            if (A[i-1] > A[i])
-            {
-                A.swap(i-1, i);
-                mov = i;
-                swapped = true;
-            }
-        }
-        if(!swapped) { return; }
-
-        lo = mov;
-
+        A.mark(lo);
+        A.mark(hi);
         for (size_t i = lo; i < hi; ++i)
         {
             if (A[i] > A[i+1])
             {
                 A.swap(i, i+1);
                 mov = i;
-                swapped = true;
             }
         }
-        if(!swapped) { return; }
-
+        A.unmark(hi);
         hi = mov;
+        A.mark(hi);
+
+        A.mark(lo);
+        for (size_t i = hi; i > lo; --i)
+        {
+            if (A[i-1] > A[i])
+            {
+                A.swap(i-1, i);
+                mov = i;
+            }
+        }
+
+        A.unmark(lo);
+        lo = mov;
+
     }
 }
 
@@ -2292,7 +2336,7 @@ void FlippedMinHeapSort(SortArray& A)
     ssize_t k = 0;
 
     // mark heap levels with different colors
-    for (size_t j = 0; j < i; ++j) {A.mark(j, log(prevPowerOfTwo(n-j)) / log(2) + 4);}
+    for (size_t j = 0; j < i; ++j) A.mark(j, log(prevPowerOfTwo(n-j)) / log(2) + 4);
 
     i--;
 
@@ -2306,8 +2350,8 @@ void FlippedMinHeapSort(SortArray& A)
         
             // pop smallest element from heap: swap front to back, and sift
             // front A[0] down the heap
-            A.swap(k,n-1);
             if (k == n) return;
+            A.swap(k,n-1);
 
             A.mark(k);
             if ((k-1) >= 0) A.unmark(k-1);
@@ -2319,7 +2363,7 @@ void FlippedMinHeapSort(SortArray& A)
 
 
         // sift operation - push the value of A[i] down the heap
-        while (child > k)
+        while (child >= k)
         {
             if (((child - 1) >= k) && (A[child - 1] < A[child])) {
                 child--;
@@ -2394,7 +2438,6 @@ void BalancedSortingNetwork(SortArray& A) {
     }
 }
 
-
 // ****************************************************************************
 // *** Proxmap Sort
 
@@ -2455,4 +2498,128 @@ void ProxmapSort(SortArray& A)
     for(int i = 0; i < A.size(); ++i) A.set(i, (ArrayItem)A2[i]); 
 }
 
-// ****************************************************************************
+/*/ ****************************************************************************
+// *** Improved Weave Merge Sort 
+
+// in-shuffle based on https://arxiv.org/pdf/0805.1598.pdf
+
+void ImprovedWeaveMergeSort(SortArray& A, size_t lo, size_t hi)
+{
+    int l = hi - lo;
+    if(l < 2) return;
+    size_t m = (lo + hi) / 2;
+    // ImprovedWeaveMergeSort(A, lo, m);
+    // ImprovedWeaveMergeSort(A, m, hi);
+
+    // the in-shuffle algorithm
+
+    int st = 0;
+    while(st < l)
+    {
+        // step 1: find m
+        int i=3;
+        while(i <= l+1) i*=3;
+
+        if(i > 3) i=i/3;
+
+        // step 2: rotation (NOTE: currently uses reversals)
+
+        // step 3: do the cycle leader algorithm 
+        int idx, tmp1, tmp2;
+
+        idx = (st*2)%(l+1);
+        tmp1 = A[idx-1];
+        A[idx-1] = A[st-1];
+
+        while(idx != st)
+        {
+            tmp2 = A[(idx * 2)%(l + 1)-1];
+            A[(idx * 2)%(l + 1)-1] = tmp1;
+            tmp1 = tmp2;
+            idx = (idx * 2) % (l+1);
+        }
+
+        // step 4: recursive repeat
+    }
+
+    InsertionSortExtra(A, lo, hi);
+}
+
+void ImprovedWeaveMergeSort(SortArray& A)
+{
+    ImprovedWeaveMergeSort(A, 0, A.size());
+}
+
+// ****************************************************************************/
+
+namespace UnbalancedTreeSortNS {
+
+// BST node that keeps track of array indices for visualization
+struct Node
+{
+    size_t parent;
+    size_t depth;
+    Node* left;
+    Node* right;
+};
+
+// special types of function for visualization
+// indexInsert is like insert function of BST but for indices
+Node* indexInsert(SortArray& A, Node* parent, size_t i, size_t depth)
+{
+    if(parent == NULL)
+    {
+        parent = new Node();
+        parent->parent = i;
+        parent->depth = depth;
+        parent->left = NULL;
+        parent->right = NULL;
+    } else if(A[i] >= A[parent->parent]) {
+        parent->right = indexInsert(A, parent->right, i, depth+1);
+    } else {
+        parent->left = indexInsert(A, parent->left, i, depth+1);
+    }
+
+    return parent;
+}
+
+// likewise, this is an in-order traversal function of BST but modified to work for indices
+// traversal - left subtree - parent - right subtree
+size_t traverse(SortArray& A, std::vector<ArrayItem> aux, Node* parent, size_t i)
+{
+
+    if(parent->left != NULL)
+    {
+        i = traverse(A, aux, parent->left, i);
+    }
+    A.set(i++, aux[parent->parent]);
+    if(parent->right != NULL)
+    {
+        i = traverse(A, aux, parent->right, i);
+    }
+
+    // used to retrieve the number of counts for the array
+    return i;
+}
+
+
+void sort(SortArray& A)
+{
+    Node* tree;
+    tree = NULL;
+    std::vector<ArrayItem> aux(A.size());
+
+    for(size_t i=0; i<A.size(); i++)
+    {
+        tree = indexInsert(A, tree, i, 0);
+        aux[i] = A[i]; // copy to another array
+    }
+    traverse(A, aux, tree, 0);
+}
+
+} // namespace UnbalancedTreeSortNS
+
+void UnbalancedTreeSort(SortArray& A)
+{
+    UnbalancedTreeSortNS::sort(A);
+}
