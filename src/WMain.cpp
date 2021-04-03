@@ -44,7 +44,7 @@ WMain::WMain(wxWindow* parent)
     }
 
     // program version
-    SetTitle(_("The Sound of Sorting " PACKAGE_VERSION));
+    SetTitle(_("Modded Sound of Sorting " PACKAGE_VERSION)); //  
 
     // resize right split window
     splitter_0->SetSashPosition(GetSize().x - 280);
@@ -228,6 +228,7 @@ void WMain::OnRunFinished(wxCommandEvent&)
         m_thread = NULL;
     }
 
+    SetDelay(speedSlider->GetValue());
     runButton->SetValue(false);
 }
 
@@ -294,8 +295,8 @@ public:
     WAbout(wxWindow* parent)
         : WAbout_wxg(parent, wxID_ANY, wxEmptyString)
     {
-        labelTitle->SetLabel(_("Modded Sound of Sorting " PACKAGE_VERSION));
-        labelBuildDate->SetLabel(_("Build Date: " __DATE__));
+        labelTitle->SetLabel(_("Modded Sound of Sorting " PACKAGE_VERSION " - A Visualization and ""Audibilization"" of Sorting Algorithms"));
+        labelBuildDate->SetLabel(_("Build Date: " __DATE__)); 
 
         GetSizer()->Fit(this);
         Layout();

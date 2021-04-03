@@ -159,7 +159,9 @@ void WSortView::paint(wxDC& dc, const wxSize& dcsize)
         wxString algo_expand = g_algo_name + wxString(" - ") +
           wxString(std::to_string(g_compare_count)) + wxString(" comparisons, ")
           + wxString(std::to_string(g_access_count)) + wxString(" array accesses, ")
-          + ((g_delay > 10) ? wxString::Format(_("%.0f ms delay"), g_delay) : wxString::Format(_("%.1f ms delay"), g_delay));
+          + ((g_delay > 10) ? wxString::Format(_("%.0f ms delay"), g_delay)
+          : ((g_delay > 1) ? wxString::Format(_("%.1f ms delay"), g_delay)
+          : wxString::Format(_("%.2f ms delay"), g_delay)));
         th = dc.GetTextExtent(algo_expand).GetHeight();
         dc.DrawText(algo_expand, 0, -2);
     }
@@ -189,9 +191,9 @@ void WSortView::paint(wxDC& dc, const wxSize& dcsize)
     double bstep = wbar + 1.0;
 
     if(width <= (size-1)) {
+        wbar = 1.0;
         bstep = 1.0;
-    } else 
-    if (width <= ((double)size*2.0)){
+    } else if (width <= ((double)size*2.0)){
         wbar = width / (double)size;
         bstep = wbar;
     }
@@ -297,6 +299,9 @@ void* SortAlgoThread::Entry()
     m_sortview.m_array.OnAlgoLaunch(ae);
 
     ae.func(m_sortview.m_array);
+
+    // after sorting
+    g_delay = 1000.0 / m_sortview.m_array.size();
 
     m_sortview.m_array.CheckSorted();
 
